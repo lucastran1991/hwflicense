@@ -16,14 +16,16 @@ export default function DashboardPage() {
     try {
       const [cmlData, sitesData] = await Promise.all([
         apiClient.getCML().catch(() => null),
-        apiClient.listSites().catch(() => ({ sites: [], total: 0 })),
+        apiClient.listSites().catch(() => null),
       ]);
       
       if (cmlData?.data) {
         setCml(cmlData.data);
       }
-      if (sitesData?.data) {
-        setSites(sitesData.data.sites || []);
+      
+      if (sitesData) {
+        const sites = (sitesData as any).data?.sites || (sitesData as any).sites || [];
+        setSites(sites);
       }
     } catch (error) {
       console.error('Failed to load data:', error);
