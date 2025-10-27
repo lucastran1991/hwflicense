@@ -181,3 +181,23 @@ func LoadPublicKey(filename string) (*ecdsa.PublicKey, error) {
 
 	return PEMToPublicKey(string(data))
 }
+
+// LoadPrivateKeyFromPEM loads a private key from PEM-encoded data
+func LoadPrivateKeyFromPEM(pemData []byte) (*ecdsa.PrivateKey, error) {
+	block, _ := pem.Decode(pemData)
+	if block == nil {
+		return nil, fmt.Errorf("failed to decode PEM block")
+	}
+
+	privateKey, err := x509.ParseECPrivateKey(block.Bytes)
+	if err != nil {
+		return nil, err
+	}
+
+	return privateKey, nil
+}
+
+// LoadPublicKeyFromPEM loads a public key from PEM-encoded data
+func LoadPublicKeyFromPEM(pemData string) (*ecdsa.PublicKey, error) {
+	return PEMToPublicKey(pemData)
+}

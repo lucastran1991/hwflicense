@@ -8,12 +8,13 @@ import (
 )
 
 type Config struct {
-	DBPath           string
-	JWTSecret        string
-	APIPort          string
-	APIEnv           string
-	RootPublicKey    string
-	AStackMockPort   string
+	DBPath              string
+	JWTSecret           string
+	APIPort             string
+	APIEnv              string
+	RootPublicKey       string
+	AStackMockPort      string
+	EncryptionPassword  string
 }
 
 var AppConfig *Config
@@ -23,12 +24,13 @@ func LoadConfig() error {
 	_ = godotenv.Load()
 
 	config := &Config{
-		DBPath:         getEnv("DB_PATH", "data/taskmaster_license.db"),
-		JWTSecret:      getEnv("JWT_SECRET", "taskmaster-secret-key-change-in-production"),
-		APIPort:        getEnv("API_PORT", "8080"),
-		APIEnv:         getEnv("API_ENV", "development"),
-		RootPublicKey:  getEnv("ROOT_PUBLIC_KEY", ""),
-		AStackMockPort: getEnv("ASTACK_MOCK_PORT", "8081"),
+		DBPath:             getEnv("DB_PATH", "data/taskmaster_license.db"),
+		JWTSecret:          getEnv("JWT_SECRET", "taskmaster-secret-key-change-in-production"),
+		APIPort:            getEnv("API_PORT", "8080"),
+		APIEnv:             getEnv("API_ENV", "development"),
+		RootPublicKey:      getEnv("ROOT_PUBLIC_KEY", ""),
+		AStackMockPort:     getEnv("ASTACK_MOCK_PORT", "8081"),
+		EncryptionPassword: getEnv("ENCRYPTION_PASSWORD", "change-this-password-in-production-12345"),
 	}
 
 	AppConfig = config

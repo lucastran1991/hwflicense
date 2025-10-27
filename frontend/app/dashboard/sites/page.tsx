@@ -9,6 +9,7 @@ export default function SitesPage() {
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [newSiteId, setNewSiteId] = useState('');
+  const [fingerprint, setFingerprint] = useState({ address: '', dns_suffix: '', deployment_tag: '' });
   const router = useRouter();
 
   useEffect(() => {
@@ -29,12 +30,44 @@ export default function SitesPage() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await apiClient.createSite(newSiteId);
+      // Filter out empty fingerprint fields
+      const fingerprintData: any = {};
+      if (fingerprint.address) fingerprintData.address = fingerprint.address;
+      if (fingerprint.dns_suffix) fingerprintData.dns_suffix = fingerprint.dns_suffix;
+      if (fingerprint.deployment_tag) fingerprintData.deployment_tag = fingerprint.deployment_tag;
+      
+      await apiClient.createSite(newSiteId, Object.keys(fingerprintData).length > 0 ? fingerprintData : undefined);
       setShowCreate(false);
       setNewSiteId('');
+      setFingerprint({ address: '', dns_suffix: '', deployment_tag: '' });
       loadSites();
     } catch (error: any) {
       alert(error.response?.data?.error || 'Failed to create site');
+    }
+  };
+
+  const handleDownload = async (siteId: string) => {
+    try {
+      const response = await apiClient.getSite(siteId);
+      const licenseDataStr = response.data.license?.license_data;
+      
+      if (!licenseDataStr) {
+        alert('No license data available');
+        return;
+      }
+
+      // Create downloadable JSON file
+      const blob = new Blob([licenseDataStr], { type: 'application/json' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `site_${siteId}.lic`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert('Failed to download license file');
     }
   };
 
@@ -79,6 +112,45 @@ export default function SitesPage() {
                   required
                 />
               </div>
+              
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Fingerprint (Optional)
+                </label>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Address</label>
+                    <input
+                      type="text"
+                      value={fingerprint.address}
+                      onChange={(e) => setFingerprint({...fingerprint, address: e.target.value})}
+                      placeholder="192.168.1.1"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">DNS Suffix</label>
+                    <input
+                      type="text"
+                      value={fingerprint.dns_suffix}
+                      onChange={(e) => setFingerprint({...fingerprint, dns_suffix: e.target.value})}
+                      placeholder="hwf.local"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Deployment Tag</label>
+                    <input
+                      type="text"
+                      value={fingerprint.deployment_tag}
+                      onChange={(e) => setFingerprint({...fingerprint, deployment_tag: e.target.value})}
+                      placeholder="production"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+              
               <div className="flex gap-2">
                 <button
                   type="submit"
@@ -150,9 +222,15 @@ export default function SitesPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                       <button
                         onClick={() => router.push(`/dashboard/sites/${site.site_id}`)}
-                        className="text-indigo-600 hover:text-indigo-900"
+                        className="text-indigo-600 hover:text-indigo-900 mr-2"
                       >
                         View
+                      </button>
+                      <button
+                        onClick={() => handleDownload(site.site_id)}
+                        className="text-green-600 hover:text-green-900 mr-2"
+                      >
+                        Download
                       </button>
                       {site.status !== 'revoked' && (
                         <button

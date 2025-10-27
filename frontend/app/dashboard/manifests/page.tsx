@@ -8,6 +8,8 @@ export default function ManifestsPage() {
   const [loading, setLoading] = useState(true);
   const [showGenerate, setShowGenerate] = useState(false);
   const [period, setPeriod] = useState('');
+  const [selectedManifest, setSelectedManifest] = useState<any>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
     loadManifests();
@@ -36,6 +38,29 @@ export default function ManifestsPage() {
     }
   };
 
+  const handleSendToAStack = async (manifestId: string) => {
+    const astackEndpoint = prompt('Enter A-Stack endpoint:', 'http://localhost:8081/api/manifests/receive');
+    if (!astackEndpoint) return;
+
+    try {
+      await apiClient.sendManifest(manifestId, astackEndpoint);
+      alert('Manifest successfully sent to A-Stack!');
+      loadManifests();
+    } catch (error: any) {
+      alert(error.response?.data?.error || 'Failed to send manifest to A-Stack');
+    }
+  };
+
+  const handleViewDetails = async (manifestId: string) => {
+    try {
+      const response = await apiClient.getManifest(manifestId);
+      setSelectedManifest(response.data.manifest);
+      setShowPreview(true);
+    } catch (error) {
+      alert('Failed to load manifest details');
+    }
+  };
+
   const handleDownload = async (manifestId: string) => {
     try {
       const response = await apiClient.downloadManifest(manifestId);
@@ -44,7 +69,9 @@ export default function ManifestsPage() {
       const a = document.createElement('a');
       a.href = url;
       a.download = `manifest_${manifestId}.json`;
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
     } catch (error) {
       alert('Failed to download manifest');
@@ -54,7 +81,51 @@ export default function ManifestsPage() {
   if (loading) return <div className="text-center py-8">Loading...</div>;
 
   return (
-    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <>
+      {/* Manifest Preview Modal */}
+      {showPreview && selectedManifest && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-4xl max-h-[80vh] overflow-auto w-full mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Manifest Details</h2>
+              <button
+                onClick={() => setShowPreview(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="bg-gray-50 rounded-lg p-4 overflow-auto mb-4">
+              <pre className="text-sm text-gray-900 whitespace-pre-wrap">
+                {JSON.stringify(JSON.parse(selectedManifest.manifest_data), null, 2)}
+              </pre>
+            </div>
+
+            <div className="mb-4">
+              <p className="text-sm font-medium text-gray-700">Signature:</p>
+              <p className="text-xs text-gray-600 font-mono break-all">{selectedManifest.signature}</p>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleDownload(selectedManifest.id)}
+                className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
+              >
+                Download
+              </button>
+              <button
+                onClick={() => setShowPreview(false)}
+                className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-900">Usage Manifests</h1>
@@ -146,11 +217,25 @@ export default function ManifestsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                       <button
+                        onClick={() => handleViewDetails(manifest.id)}
+                        className="text-indigo-600 hover:text-indigo-900 mr-2"
+                      >
+                        View
+                      </button>
+                      <button
                         onClick={() => handleDownload(manifest.id)}
-                        className="text-indigo-600 hover:text-indigo-900"
+                        className="text-green-600 hover:text-green-900 mr-2"
                       >
                         Download
                       </button>
+                      {!manifest.sent_to_astack && (
+                        <button
+                          onClick={() => handleSendToAStack(manifest.id)}
+                          className="text-orange-600 hover:text-orange-900"
+                        >
+                          Send to A-Stack
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))
@@ -160,6 +245,7 @@ export default function ManifestsPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }
 

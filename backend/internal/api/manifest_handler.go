@@ -1,8 +1,12 @@
 package api
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -97,15 +101,93 @@ func (h *ManifestHandler) SendManifest(c *gin.Context) {
 		return
 	}
 
-	// TODO: Send to A-Stack endpoint
-	// For now, just mark as sent
-	if err := h.manifestService.MarkManifestSent(req.ManifestID); err != nil {
+	// Parse manifest data
+	var manifestData map[string]interface{}
+	if err := json.Unmarshal(manifest.ManifestData, &manifestData); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid manifest data"})
+		return
+	}
+
+	// Prepare payload for A-Stack
+	payload := map[string]interface{}{
+		"org_id":    manifest.OrgID,
+		"period":    manifest.Period,
+		"manifest":  manifestData,
+		"signature": manifest.Signature,
+	}
+
+	// Send to A-Stack with retry logic
+	err = sendToAStackWithRetry(req.AStackEndpoint, payload)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
+	// Mark as sent in database
+	now := time.Now()
+	if err := h.manifestService.MarkManifestSent(manifest.ID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to mark manifest as sent"})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"status": "sent",
-		"timestamp": manifest.SentAt,
+		"status":    "sent",
+		"timestamp": now.Format(time.RFC3339),
+		"message":   "Manifest successfully sent to A-Stack",
 	})
+}
+
+// sendToAStackWithRetry sends manifest to A-Stack with exponential backoff retry logic
+func sendToAStackWithRetry(endpoint string, payload map[string]interface{}) error {
+	maxRetries := 3
+	initialDelay := 1 * time.Second
+
+	for attempt := 0; attempt < maxRetries; attempt++ {
+		if attempt > 0 {
+			// Exponential backoff: 1s, 2s, 4s
+			delay := initialDelay * time.Duration(1<<uint(attempt-1))
+			time.Sleep(delay)
+		}
+
+		// Marshal payload
+		jsonData, err := json.Marshal(payload)
+		if err != nil {
+			return fmt.Errorf("failed to marshal payload: %w", err)
+		}
+
+		// Create HTTP request
+		req, err := http.NewRequest("POST", endpoint, bytes.NewBuffer(jsonData))
+		if err != nil {
+			return fmt.Errorf("failed to create request: %w", err)
+		}
+
+		req.Header.Set("Content-Type", "application/json")
+
+		// Send request
+		client := &http.Client{Timeout: 10 * time.Second}
+		resp, err := client.Do(req)
+		if err != nil {
+			if attempt == maxRetries-1 {
+				return fmt.Errorf("failed to send after %d attempts: %w", maxRetries, err)
+			}
+			continue
+		}
+		defer resp.Body.Close()
+
+		// Check status code
+		if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+			// Read response body
+			body, _ := io.ReadAll(resp.Body)
+			fmt.Printf("A-Stack response: %s\n", string(body))
+			return nil
+		}
+
+		// If not success, read error and retry
+		body, _ := io.ReadAll(resp.Body)
+		if attempt == maxRetries-1 {
+			return fmt.Errorf("A-Stack returned status %d: %s", resp.StatusCode, string(body))
+		}
+	}
+
+	return fmt.Errorf("max retries exceeded")
 }

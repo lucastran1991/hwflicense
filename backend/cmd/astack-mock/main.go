@@ -18,9 +18,10 @@ type CMLIssueRequest struct {
 }
 
 type ManifestReceiveRequest struct {
-	OrgID    string                 `json:"org_id"`
-	Period   string                 `json:"period"`
-	Manifest map[string]interface{} `json:"manifest"`
+	OrgID     string                 `json:"org_id"`
+	Period    string                 `json:"period"`
+	Manifest  map[string]interface{} `json:"manifest"`
+	Signature string                 `json:"signature"`
 }
 
 func main() {
@@ -73,14 +74,32 @@ func main() {
 		}
 
 		log.Printf("Received manifest from org: %s, period: %s", req.OrgID, req.Period)
-		log.Printf("Manifest data: %v", req.Manifest)
 
-		// Mock validation
+		// Verify signature if provided
+		validated := true
+		validationMessage := "Manifest signature verified"
+		
+		if req.Signature != "" && req.Signature != "TODO: sign with org key" && req.Signature != "" {
+			// In a real implementation, we would verify the signature here
+			// For mock: accept any non-placeholder signature
+			if req.Signature == "mock_signature" {
+				validationMessage = "Mock signature - not verified"
+			}
+		} else {
+			validated = false
+			validationMessage = "Manifest has no valid signature"
+		}
+
+		// Store manifest data (in production, this would be in a database)
+		log.Printf("Manifest validation: %s", validationMessage)
+
 		c.JSON(200, gin.H{
-			"status": "received",
-			"validated": true,
-			"message": "Manifest successfully validated and recorded",
-			"timestamp": time.Now().Format(time.RFC3339),
+			"status":           "received",
+			"validated":        validated,
+			"message":          validationMessage,
+			"org_id":          req.OrgID,
+			"period":          req.Period,
+			"timestamp":       time.Now().Format(time.RFC3339),
 		})
 	})
 

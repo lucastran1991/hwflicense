@@ -7,14 +7,15 @@ import (
 
 	"github.com/google/uuid"
 
+	"taskmaster-license/internal/config"
 	"taskmaster-license/internal/models"
 	"taskmaster-license/internal/repository"
+	"taskmaster-license/pkg/crypto"
 )
 
 type ManifestService struct {
-	repo   *repository.Repository
-	orgID  string
-	orgKey []byte // In production, this should be encrypted org private key
+	repo  *repository.Repository
+	orgID string
 }
 
 func NewManifestService(repo *repository.Repository) *ManifestService {
@@ -71,9 +72,29 @@ func (s *ManifestService) GenerateManifest(period string) (*models.UsageManifest
 		return nil, fmt.Errorf("failed to marshal manifest: %w", err)
 	}
 
-	// TODO: Sign manifest with org key
-	// For now, placeholder signature
-	signature := "TODO: sign with org key"
+	// Get org key for signing
+	orgKey, err := s.repo.GetOrgKey(s.orgID, "dev") // Default to dev key
+	if err != nil {
+		return nil, fmt.Errorf("failed to get org key: %w", err)
+	}
+
+	// Decrypt private key
+	privateKeyPEM, err := crypto.DecryptPrivateKey(orgKey.PrivateKeyEncrypted, config.AppConfig.EncryptionPassword)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decrypt org key: %w", err)
+	}
+
+	// Load private key
+	privateKey, err := crypto.LoadPrivateKeyFromPEM(privateKeyPEM)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load private key: %w", err)
+	}
+
+	// Sign manifest with org private key
+	signature, err := crypto.SignJSON(manifestData, privateKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to sign manifest: %w", err)
+	}
 
 	// Create manifest entity
 	manifest := &models.UsageManifest{
