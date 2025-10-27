@@ -1,183 +1,84 @@
-# TaskMaster License Management System - .gitignore
-# Golang + Next.js Project
-
-# ============================================================================
-# Environment & Secrets
-# ============================================================================
-.env
-.env.local
-.env.development
-.env.test
-.env.production
-
-# ============================================================================
-# Golang Specific
-# ============================================================================
-
-# Binaries for programs and plugins
+# Binaries
 *.exe
-*.exe~
 *.dll
 *.so
 *.dylib
+server
 
 # Test binary, built with `go test -c`
 *.test
 
 # Output of the go coverage tool
 *.out
-coverage.*
-*.coverprofile
-profile.cov
 
-# Go workspace file
-go.work
-go.work.sum
+# Dependency directories
+node_modules/
+.pnp
+.pnp.js
 
-# Build output directories
-/bin/
-/dist/
-/cmd/*/bin
-/cmd/*/dist
+# Testing
+coverage/
 
-# Temporary files
-*.tmp
-*.bak
+# Next.js
+.next/
+out/
+build/
+dist/
+
+# Production
+/build
+/out
+
+# Misc
+.DS_Store
+*.pem
+*.log
+*.pid
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Vercel
+.vercel
+
+# Typescript
+*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
 *.swp
 *.swo
 *~
 
-# ============================================================================
-# Next.js Specific
-# ============================================================================
-
-# Dependencies
-node_modules/
-frontend/node_modules/
-
-# Build output
-.next/
-frontend/.next/
-out/
-frontend/out/
-
-# Production build
-build/
-frontend/build/
-
-# Debug logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-# Local env files
-.env*.local
-
-# Vercel
-.vercel
-frontend/.vercel
-
-# TypeScript
-*.tsbuildinfo
-next-env.d.ts
-
-# Turbo
-.turbo
-frontend/.turbo
-
-# ============================================================================
-# Database & Data
-# ============================================================================
-*.db
-*.sqlite
-*.sqlite3
+# Data files
 data/
-*.db-journal
+*.db
+*.db-shm
+*.db-wal
 
-# ============================================================================
-# Keys & Certificates
-# ============================================================================
+# PID files
+.backend.pid
+.frontend.pid
+.backend.log
+.frontend.log
+
+# Deployment
+deploy/
+
+# Keys (gitignored for security)
+backend/keys/
 keys/
-*.pem
-*.key
-*.crt
-*.csr
-*.p12
-*.pfx
 
-# ============================================================================
-# IDE & Editor
-# ============================================================================
-.vscode/
-.idea/
-*.iml
-*.swp
-*.swo
+# OS files
 .DS_Store
-
-# JetBrains IDEs
-*.iws
-*.ipr
-out/
-
-# VSCode
-.vscode/*
-!.vscode/extensions.json
-!.vscode/settings.json
-
-# ============================================================================
-# OS Specific
-# ============================================================================
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
-desktop.ini
-
-# ============================================================================
-# Project Specific
-# ============================================================================
-# Logs
-*.log
-logs/
-
-# Temporary files
-tmp/
-temp/
-*.tmp
-
-# Backup files
-*.bak
-*.backup
-
-# Lock files (can be regenerated)
-go.sum  # Keep go.mod, ignore go.sum if you want
-package-lock.json  # or include it for reproducibility
-yarn.lock
-pnpm-lock.yaml
-
-# ============================================================================
-# Testing
-# ============================================================================
-test-results/
-playwright-report/
-playwright/.cache/
-coverage/
-
-# ============================================================================
-# Misc
-# ============================================================================
-.cache/
-.parcel-cache/
-.next/cache/
-frontend/.next/cache/
-
-# Optional: Keep dependency directories
-# Uncomment if you want to track dependencies
-# !vendor/
-# !node_modules/.bin
