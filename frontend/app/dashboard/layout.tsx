@@ -3,6 +3,7 @@
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import Link from 'next/link';
 
 function LogoutButton() {
   const { logout } = useAuth();
@@ -46,9 +47,10 @@ export default function DashboardLayout({
             <div className="flex items-center gap-4">
               <h1 className="text-xl font-semibold text-gray-900">TaskMaster License Hub</h1>
               <div className="flex gap-2">
-                <a href="/dashboard" className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium">Dashboard</a>
-                <a href="/dashboard/sites" className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium">Sites</a>
-                <a href="/dashboard/manifests" className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium">Manifests</a>
+                <Link href="/dashboard" className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium">Dashboard</Link>
+                <Link href="/dashboard/sites" className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium">Sites</Link>
+                <Link href="/dashboard/manifests" className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium">Manifests</Link>
+                <Link href="/api-test" className="text-indigo-600 hover:text-indigo-900 px-3 py-2 text-sm font-medium">API Test</Link>
               </div>
             </div>
             <div className="flex items-center">
