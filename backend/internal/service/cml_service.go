@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"taskmaster-license/internal/config"
 	"taskmaster-license/internal/models"
 	"taskmaster-license/internal/repository"
 	"taskmaster-license/pkg/crypto"
@@ -63,7 +64,65 @@ func (s *CMLService) UploadCML(cmlDataStr, signature string, publicKeyPEM string
 }
 
 func (s *CMLService) GetCML(orgID string) (*models.CML, error) {
-	return s.repo.GetCML(orgID)
+	cml, err := s.repo.GetCML(orgID)
+	if err != nil {
+		// Return default CML if not found in database
+		return s.createDefaultCML(orgID), nil
+	}
+	return cml, nil
+}
+
+func (s *CMLService) createDefaultCML(orgID string) *models.CML {
+	// Calculate validity date (1 year from now)
+	validity := time.Now().AddDate(1, 0, 0)
+	
+	// Get default values from config
+	maxSites := config.AppConfig.DefaultMaxSites
+	if maxSites == 0 {
+		maxSites = 100 // Fallback default
+	}
+	
+	featurePacks := config.AppConfig.DefaultFeaturePacks
+	if len(featurePacks) == 0 {
+		featurePacks = []string{"basic", "standard"}
+	}
+	
+	// Try to get org's public key if available
+	publicKey := ""
+	orgKey, err := s.repo.GetOrgKey(orgID, "dev")
+	if err == nil && orgKey != nil {
+		publicKey = orgKey.PublicKey
+	}
+	
+	// Create default CML data
+	cmlData := models.CMLData{
+		Type:            "default_cml",
+		OrgID:           orgID,
+		MaxSites:        maxSites,
+		Validity:        validity.Format(time.RFC3339),
+		FeaturePacks:    featurePacks,
+		KeyType:         "dev",
+		IssuedBy:        "system",
+		IssuerPublicKey: publicKey,
+		IssuedAt:        time.Now().Format(time.RFC3339),
+	}
+	
+	cmlDataJSON, _ := json.Marshal(cmlData)
+	
+	// Create in-memory CML (not persisted to database)
+	return &models.CML{
+		ID:            fmt.Sprintf("default_%s", orgID),
+		OrgID:         orgID,
+		MaxSites:      maxSites,
+		Validity:      validity,
+		FeaturePacks:  featurePacks,
+		DevKeyPublic:  publicKey,
+		ProdKeyPublic: publicKey,
+		CMLData:       json.RawMessage(cmlDataJSON),
+		Signature:     "default_cml_no_signature",
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
+	}
 }
 
 func (s *CMLService) RefreshCML(orgID string, cmlDataStr, signature string) error {

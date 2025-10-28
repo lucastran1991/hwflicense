@@ -6,6 +6,9 @@
   "api_env": "development",
   "encryption_password": "change-this-password-in-production-12345",
   "astack_mock_port": "8081",
-  "root_public_key": ""
+  "root_public_key": "",
+  "default_max_sites": 100,
+  "default_cml_validity_days": 365,
+  "default_feature_packs": ["basic", "standard"]
 }
 
