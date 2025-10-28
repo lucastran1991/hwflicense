@@ -2,6 +2,19 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
+import {
+  Box,
+  VStack,
+  Heading,
+  Text,
+  FormControl,
+  FormLabel,
+  Input,
+  Button,
+  Alert,
+  AlertIcon,
+  Container,
+} from '@chakra-ui/react';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -25,71 +38,69 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-md">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            TaskMaster License Hub
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Sign in to manage your licenses
-          </p>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
-              {error}
-            </div>
-          )}
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-                Username
-              </label>
-              <input
-                id="username"
-                name="username"
-                type="text"
-                required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="admin"
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="admin123"
-              />
-            </div>
-          </div>
+    <Box minH="100vh" display="flex" alignItems="center" justifyContent="center" bg="gray.50">
+      <Container maxW="md">
+        <Box bg="white" p={8} rounded="lg" shadow="md">
+          <VStack spacing={6} align="stretch">
+            <Box>
+              <Heading textAlign="center" size="xl" color="gray.900">
+                TaskMaster License Hub
+              </Heading>
+              <Text textAlign="center" color="gray.600" mt={2}>
+                Sign in to manage your licenses
+              </Text>
+            </Box>
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-            >
-              {loading ? 'Signing in...' : 'Sign in'}
-            </button>
-          </div>
+            <form onSubmit={handleSubmit}>
+              <VStack spacing={4}>
+                {error && (
+                  <Alert status="error" rounded="md">
+                    <AlertIcon />
+                    {error}
+                  </Alert>
+                )}
 
-          <div className="text-sm text-gray-600 mt-4">
-            <p>Default credentials: admin / admin123</p>
-          </div>
-        </form>
-      </div>
-    </div>
+                <FormControl isRequired>
+                  <FormLabel>Username</FormLabel>
+                  <Input
+                    id="username"
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="admin"
+                  />
+                </FormControl>
+
+                <FormControl isRequired>
+                  <FormLabel>Password</FormLabel>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="admin123"
+                  />
+                </FormControl>
+
+                <Button
+                  type="submit"
+                  colorScheme="blue"
+                  width="full"
+                  isLoading={loading}
+                  loadingText="Signing in..."
+                >
+                  Sign in
+                </Button>
+
+                <Text fontSize="sm" color="gray.600" textAlign="center">
+                  Default credentials: admin / admin123
+                </Text>
+              </VStack>
+            </form>
+          </VStack>
+        </Box>
+      </Container>
+    </Box>
   );
 }
 

@@ -3,26 +3,61 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
+import {
+  Box,
+  Heading,
+  Button,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  useDisclosure,
+  FormControl,
+  FormLabel,
+  Input,
+  Select,
+  Grid,
+  Badge,
+  useToast,
+  Spinner,
+} from '@chakra-ui/react';
+import { CheckIcon, DownloadIcon, ViewIcon, DeleteIcon } from '@chakra-ui/icons';
 
 export default function SitesPage() {
   const [sites, setSites] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showCreate, setShowCreate] = useState(false);
   const [newSiteId, setNewSiteId] = useState('');
   const [keyType, setKeyType] = useState<'production' | 'dev'>('production');
   const [fingerprint, setFingerprint] = useState({ address: '', dns_suffix: '', deployment_tag: '' });
   const router = useRouter();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const toast = useToast();
 
   useEffect(() => {
     loadSites();
   }, []);
 
   const loadSites = async () => {
+    setLoading(true);
     try {
       const response = await apiClient.listSites();
       setSites(response.data.sites || []);
     } catch (error) {
-      console.error('Failed to load sites:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load sites',
+        status: 'error',
+        duration: 3000,
+      });
     } finally {
       setLoading(false);
     }
@@ -31,19 +66,29 @@ export default function SitesPage() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // Filter out empty fingerprint fields
       const fingerprintData: any = {};
       if (fingerprint.address) fingerprintData.address = fingerprint.address;
       if (fingerprint.dns_suffix) fingerprintData.dns_suffix = fingerprint.dns_suffix;
       if (fingerprint.deployment_tag) fingerprintData.deployment_tag = fingerprint.deployment_tag;
       
       await apiClient.createSite(newSiteId, Object.keys(fingerprintData).length > 0 ? fingerprintData : undefined);
-      setShowCreate(false);
+      onClose();
       setNewSiteId('');
       setFingerprint({ address: '', dns_suffix: '', deployment_tag: '' });
       loadSites();
+      toast({
+        title: 'Success',
+        description: 'Site created successfully',
+        status: 'success',
+        duration: 3000,
+      });
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Failed to create site');
+      toast({
+        title: 'Error',
+        description: error.response?.data?.error || 'Failed to create site',
+        status: 'error',
+        duration: 3000,
+      });
     }
   };
 
@@ -53,11 +98,15 @@ export default function SitesPage() {
       const licenseDataStr = response.data.license?.license_data;
       
       if (!licenseDataStr) {
-        alert('No license data available');
+        toast({
+          title: 'Error',
+          description: 'No license data available',
+          status: 'error',
+          duration: 3000,
+        });
         return;
       }
 
-      // Create downloadable JSON file
       const blob = new Blob([licenseDataStr], { type: 'application/json' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -67,189 +116,202 @@ export default function SitesPage() {
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
+      toast({
+        title: 'Success',
+        description: 'License file downloaded',
+        status: 'success',
+        duration: 3000,
+      });
     } catch (err) {
-      alert('Failed to download license file');
+      toast({
+        title: 'Error',
+        description: 'Failed to download license file',
+        status: 'error',
+        duration: 3000,
+      });
     }
   };
 
   const handleDelete = async (siteId: string) => {
-    if (!confirm(`Delete site ${siteId}?`)) return;
     try {
       await apiClient.deleteSite(siteId);
       loadSites();
+      toast({
+        title: 'Success',
+        description: 'Site revoked successfully',
+        status: 'success',
+        duration: 3000,
+      });
     } catch (error) {
-      alert('Failed to delete site');
+      toast({
+        title: 'Error',
+        description: 'Failed to revoke site',
+        status: 'error',
+        duration: 3000,
+      });
     }
   };
 
-  if (loading) return <div className="text-center py-8">Loading...</div>;
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minH="200px">
+        <Spinner size="xl" />
+      </Box>
+    );
+  }
 
   return (
-    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div className="px-4 py-6 sm:px-0">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Site Licenses</h1>
-          <button
-            onClick={() => setShowCreate(true)}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
-          >
-            Create Site License
-          </button>
-        </div>
+    <Box maxW="7xl" mx="auto" py={6} px={4}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={6}>
+        <Heading size="xl">Site Licenses</Heading>
+        <Button colorScheme="blue" leftIcon={<CheckIcon />} onClick={onOpen}>
+          Create Site License
+        </Button>
+      </Box>
 
-        {showCreate && (
-          <div className="bg-white shadow rounded-lg p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">Create New Site License</h2>
-            <form onSubmit={handleCreate}>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Site ID
-                </label>
-                <input
-                  type="text"
+      <Modal isOpen={isOpen} onClose={onClose} size="xl">
+        <ModalOverlay />
+        <ModalContent>
+          <form onSubmit={handleCreate}>
+            <ModalHeader>Create New Site License</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <FormControl mb={4} isRequired>
+                <FormLabel>Site ID</FormLabel>
+                <Input
                   value={newSiteId}
                   onChange={(e) => setNewSiteId(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  required
+                  placeholder="Enter site ID"
                 />
-              </div>
-              
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Fingerprint (Optional)
-                </label>
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">Address</label>
-                    <input
-                      type="text"
+              </FormControl>
+
+              <FormControl mb={4}>
+                <FormLabel>Fingerprint (Optional)</FormLabel>
+                <Grid templateColumns="repeat(3, 1fr)" gap={4}>
+                  <Box>
+                    <FormLabel fontSize="xs" color="gray.500">Address</FormLabel>
+                    <Input
                       value={fingerprint.address}
                       onChange={(e) => setFingerprint({...fingerprint, address: e.target.value})}
                       placeholder="192.168.1.1"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                      size="sm"
                     />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">DNS Suffix</label>
-                    <input
-                      type="text"
+                  </Box>
+                  <Box>
+                    <FormLabel fontSize="xs" color="gray.500">DNS Suffix</FormLabel>
+                    <Input
                       value={fingerprint.dns_suffix}
                       onChange={(e) => setFingerprint({...fingerprint, dns_suffix: e.target.value})}
                       placeholder="hwf.local"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                      size="sm"
                     />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">Deployment Tag</label>
-                    <input
-                      type="text"
+                  </Box>
+                  <Box>
+                    <FormLabel fontSize="xs" color="gray.500">Deployment Tag</FormLabel>
+                    <Input
                       value={fingerprint.deployment_tag}
                       onChange={(e) => setFingerprint({...fingerprint, deployment_tag: e.target.value})}
                       placeholder="production"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                      size="sm"
                     />
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex gap-2">
-                <button
-                  type="submit"
-                  className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
-                >
-                  Create
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowCreate(false)}
-                  className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
+                  </Box>
+                </Grid>
+              </FormControl>
 
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Site ID
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Issued At
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Last Seen
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {sites.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
-                    No sites found
-                  </td>
-                </tr>
-              ) : (
-                sites.map((site) => (
-                  <tr key={site.site_id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {site.site_id}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        site.status === 'active' ? 'bg-green-100 text-green-800' : 
-                        site.status === 'revoked' ? 'bg-red-100 text-red-800' : 
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {site.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(site.issued_at).toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {site.last_seen ? new Date(site.last_seen).toLocaleString() : 'Never'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                      <button
-                        onClick={() => router.push(`/dashboard/sites/${site.site_id}`)}
-                        className="text-indigo-600 hover:text-indigo-900 mr-2"
+              <FormControl>
+                <FormLabel>Key Type</FormLabel>
+                <Select value={keyType} onChange={(e) => setKeyType(e.target.value as 'production' | 'dev')}>
+                  <option value="production">Production</option>
+                  <option value="dev">Development</option>
+                </Select>
+              </FormControl>
+            </ModalBody>
+
+            <ModalFooter>
+              <Button variant="ghost" mr={3} onClick={onClose}>
+                Cancel
+              </Button>
+              <Button type="submit" colorScheme="blue">
+                Create
+              </Button>
+            </ModalFooter>
+          </form>
+        </ModalContent>
+      </Modal>
+
+      <Box bg="white" shadow="md" rounded="lg" overflow="hidden">
+        <Table variant="simple">
+          <Thead bg="gray.50">
+            <Tr>
+              <Th>Site ID</Th>
+              <Th>Status</Th>
+              <Th>Issued At</Th>
+              <Th>Last Seen</Th>
+              <Th>Actions</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {sites.length === 0 ? (
+              <Tr>
+                <Td colSpan={5} textAlign="center" color="gray.500">
+                  No sites found
+                </Td>
+              </Tr>
+            ) : (
+              sites.map((site) => (
+                <Tr key={site.site_id}>
+                  <Td fontWeight="medium">{site.site_id}</Td>
+                  <Td>
+                    <Badge
+                      colorScheme={
+                        site.status === 'active' ? 'green' :
+                        site.status === 'revoked' ? 'red' : 'gray'
+                      }
+                    >
+                      {site.status}
+                    </Badge>
+                  </Td>
+                  <Td>{new Date(site.issued_at).toLocaleString()}</Td>
+                  <Td>{site.last_seen ? new Date(site.last_seen).toLocaleString() : 'Never'}</Td>
+                  <Td>
+                    <Button
+                      size="sm"
+                      leftIcon={<ViewIcon />}
+                      onClick={() => router.push(`/dashboard/sites/${site.site_id}`)}
+                      mr={2}
+                      colorScheme="blue"
+                      variant="outline"
+                    >
+                      View
+                    </Button>
+                    <Button
+                      size="sm"
+                      leftIcon={<DownloadIcon />}
+                      onClick={() => handleDownload(site.site_id)}
+                      mr={2}
+                      colorScheme="green"
+                      variant="outline"
+                    >
+                      Download
+                    </Button>
+                    {site.status !== 'revoked' && (
+                      <Button
+                        size="sm"
+                        leftIcon={<DeleteIcon />}
+                        onClick={() => handleDelete(site.site_id)}
+                        colorScheme="red"
+                        variant="outline"
                       >
-                        View
-                      </button>
-                      <button
-                        onClick={() => handleDownload(site.site_id)}
-                        className="text-green-600 hover:text-green-900 mr-2"
-                      >
-                        Download
-                      </button>
-                      {site.status !== 'revoked' && (
-                        <button
-                          onClick={() => handleDelete(site.site_id)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          Revoke
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+                        Revoke
+                      </Button>
+                    )}
+                  </Td>
+                </Tr>
+              ))
+            )}
+          </Tbody>
+        </Table>
+      </Box>
+    </Box>
   );
 }
-

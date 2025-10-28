@@ -170,7 +170,7 @@ rm -rf "$DEPLOY_DIR/frontend/.next"
 cp -r "$FRONTEND_DIR/.next" "$DEPLOY_DIR/frontend/"
 cp -r "$FRONTEND_DIR/public" "$DEPLOY_DIR/frontend/" 2>/dev/null || true
 cp "$FRONTEND_DIR/package.json" "$DEPLOY_DIR/frontend/"
-cp "$FRONTEND_DIR/next.config.ts" "$DEPLOY_DIR/frontend/"
+cp "$FRONTEND_DIR/next.config.js" "$DEPLOY_DIR/frontend/" 2>/dev/null || true
 
 # Note: node_modules will be installed by wrapper-frontend.sh when starting
 # This avoids issues with symlinks and platform-specific binaries

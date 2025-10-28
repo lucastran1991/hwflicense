@@ -181,3 +181,91 @@ func (r *Repository) DeleteSiteLicense(siteID string) error {
 	_, err := r.db.Connection.Exec(query, siteID)
 	return err
 }
+
+// UpdateSiteLicense updates a site license
+func (r *Repository) UpdateSiteLicense(siteID string, site *models.SiteLicense) error {
+	query := `UPDATE site_licenses SET 
+		fingerprint = ?, 
+		license_data = ?, 
+		signature = ?, 
+		issued_at = ?, 
+		last_seen = ?, 
+		status = ?
+		WHERE site_id = ?`
+
+	var lastSeen sql.NullString
+	if site.LastSeen != nil {
+		lastSeen = sql.NullString{String: timeToString(*site.LastSeen), Valid: true}
+	}
+
+	_, err := r.db.Connection.Exec(query,
+		string(site.Fingerprint),
+		string(site.LicenseData),
+		site.Signature,
+		timeToString(site.IssuedAt),
+		lastSeen,
+		site.Status,
+		siteID,
+	)
+	return err
+}
+
+// GetSitesNearExpiration returns sites expiring within the specified number of days
+func (r *Repository) GetSitesNearExpiration(days int) ([]models.SiteLicense, error) {
+	query := `SELECT id, site_id, org_id, fingerprint, license_data, signature, 
+		issued_at, last_seen, status, created_at, expires_at
+		FROM site_licenses 
+		WHERE status = 'active' 
+		AND expires_at IS NOT NULL
+		AND date(expires_at) <= date('now', '+' || ? || ' days')
+		ORDER BY expires_at ASC`
+
+	rows, err := r.db.Connection.Query(query, days)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var sites []models.SiteLicense
+	for rows.Next() {
+		var site models.SiteLicense
+		var issuedAtStr, createdAtStr string
+		var fingerprintStr, licenseDataStr string
+		var lastSeen sql.NullTime
+		var expiresAtStr sql.NullString
+
+		err := rows.Scan(
+			&site.ID,
+			&site.SiteID,
+			&site.OrgID,
+			&fingerprintStr,
+			&licenseDataStr,
+			&site.Signature,
+			&issuedAtStr,
+			&lastSeen,
+			&site.Status,
+			&createdAtStr,
+			&expiresAtStr,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		site.IssuedAt, _ = stringToTime(issuedAtStr)
+		site.CreatedAt, _ = stringToTime(createdAtStr)
+		if lastSeen.Valid {
+			t := lastSeen.Time
+			site.LastSeen = &t
+		}
+		if expiresAtStr.Valid {
+			t, _ := stringToTime(expiresAtStr.String)
+			site.ExpiresAt = &t
+		}
+		site.Fingerprint = json.RawMessage(fingerprintStr)
+		site.LicenseData = json.RawMessage(licenseDataStr)
+
+		sites = append(sites, site)
+	}
+
+	return sites, nil
+}

@@ -160,9 +160,16 @@ func (s *SiteService) RefreshSiteKey(siteID string) error {
 
 // GetSitesNearExpiration returns sites expiring within specified days
 func (s *SiteService) GetSitesNearExpiration(days int) ([]*models.SiteLicense, error) {
-	// TODO: Implement query for sites near expiration
-	// For now, return empty list
-	return []*models.SiteLicense{}, nil
+	sites, err := s.repo.GetSitesNearExpiration(days)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get sites near expiration: %w", err)
+	}
+	
+	result := make([]*models.SiteLicense, len(sites))
+	for i := range sites {
+		result[i] = &sites[i]
+	}
+	return result, nil
 }
 
 // AggregateQuarterlyStats aggregates quarterly stats
@@ -198,7 +205,10 @@ func (s *SiteService) AggregateQuarterlyStats() (*client.QuarterlyStats, error) 
 
 // UpdateSiteLicense updates a site license
 func (s *SiteService) UpdateSiteLicense(siteID string, license *models.SiteLicense) error {
-	// TODO: Implement update method in repository
+	err := s.repo.UpdateSiteLicense(siteID, license)
+	if err != nil {
+		return fmt.Errorf("failed to update site license: %w", err)
+	}
 	return nil
 }
 

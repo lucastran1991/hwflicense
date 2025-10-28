@@ -2,25 +2,63 @@
 
 import { useState, useEffect } from 'react';
 import { apiClient } from '@/lib/api-client';
+import {
+  Box,
+  Heading,
+  Button,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  useDisclosure,
+  FormControl,
+  FormLabel,
+  Input,
+  Badge,
+  Spinner,
+  Code,
+  VStack,
+  Text,
+  IconButton,
+  useToast,
+} from '@chakra-ui/react';
+import { ViewIcon, DownloadIcon, ExternalLinkIcon, CloseIcon } from '@chakra-ui/icons';
 
 export default function ManifestsPage() {
   const [manifests, setManifests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showGenerate, setShowGenerate] = useState(false);
   const [period, setPeriod] = useState('');
   const [selectedManifest, setSelectedManifest] = useState<any>(null);
-  const [showPreview, setShowPreview] = useState(false);
+  const { isOpen: isDetailOpen, onOpen: onDetailOpen, onClose: onDetailClose } = useDisclosure();
+  const { isOpen: isGenerateOpen, onOpen: onGenerateOpen, onClose: onGenerateClose } = useDisclosure();
+  const toast = useToast();
 
   useEffect(() => {
     loadManifests();
   }, []);
 
   const loadManifests = async () => {
+    setLoading(true);
     try {
       const response = await apiClient.listManifests();
       setManifests(response.data.manifests || []);
     } catch (error) {
       console.error('Failed to load manifests:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load manifests',
+        status: 'error',
+        duration: 3000,
+      });
     } finally {
       setLoading(false);
     }
@@ -30,11 +68,22 @@ export default function ManifestsPage() {
     e.preventDefault();
     try {
       await apiClient.generateManifest(period);
-      setShowGenerate(false);
       setPeriod('');
+      onGenerateClose();
       loadManifests();
+      toast({
+        title: 'Success',
+        description: 'Manifest generated successfully',
+        status: 'success',
+        duration: 3000,
+      });
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Failed to generate manifest');
+      toast({
+        title: 'Error',
+        description: error.response?.data?.error || 'Failed to generate manifest',
+        status: 'error',
+        duration: 3000,
+      });
     }
   };
 
@@ -44,10 +93,20 @@ export default function ManifestsPage() {
 
     try {
       await apiClient.sendManifest(manifestId, astackEndpoint);
-      alert('Manifest successfully sent to A-Stack!');
       loadManifests();
+      toast({
+        title: 'Success',
+        description: 'Manifest successfully sent to A-Stack!',
+        status: 'success',
+        duration: 3000,
+      });
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Failed to send manifest to A-Stack');
+      toast({
+        title: 'Error',
+        description: error.response?.data?.error || 'Failed to send manifest to A-Stack',
+        status: 'error',
+        duration: 3000,
+      });
     }
   };
 
@@ -55,9 +114,14 @@ export default function ManifestsPage() {
     try {
       const response = await apiClient.getManifest(manifestId);
       setSelectedManifest(response.data.manifest);
-      setShowPreview(true);
+      onDetailOpen();
     } catch (error) {
-      alert('Failed to load manifest details');
+      toast({
+        title: 'Error',
+        description: 'Failed to load manifest details',
+        status: 'error',
+        duration: 3000,
+      });
     }
   };
 
@@ -73,178 +137,177 @@ export default function ManifestsPage() {
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
+      toast({
+        title: 'Success',
+        description: 'Manifest downloaded',
+        status: 'success',
+        duration: 3000,
+      });
     } catch (error) {
-      alert('Failed to download manifest');
+      toast({
+        title: 'Error',
+        description: 'Failed to download manifest',
+        status: 'error',
+        duration: 3000,
+      });
     }
   };
 
-  if (loading) return <div className="text-center py-8">Loading...</div>;
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minH="200px">
+        <Spinner size="xl" />
+      </Box>
+    );
+  }
 
   return (
     <>
-      {/* Manifest Preview Modal */}
-      {showPreview && selectedManifest && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-4xl max-h-[80vh] overflow-auto w-full mx-4">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Manifest Details</h2>
-              <button
-                onClick={() => setShowPreview(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                ✕
-              </button>
-            </div>
-            
-            <div className="bg-gray-50 rounded-lg p-4 overflow-auto mb-4">
-              <pre className="text-sm text-gray-900 whitespace-pre-wrap">
-                {JSON.stringify(JSON.parse(selectedManifest.manifest_data), null, 2)}
-              </pre>
-            </div>
-
-            <div className="mb-4">
-              <p className="text-sm font-medium text-gray-700">Signature:</p>
-              <p className="text-xs text-gray-600 font-mono break-all">{selectedManifest.signature}</p>
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleDownload(selectedManifest.id)}
-                className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
-              >
-                Download
-              </button>
-              <button
-                onClick={() => setShowPreview(false)}
-                className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div className="px-4 py-6 sm:px-0">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Usage Manifests</h1>
-          <button
-            onClick={() => setShowGenerate(true)}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
-          >
-            Generate Manifest
-          </button>
-        </div>
-
-        {showGenerate && (
-          <div className="bg-white shadow rounded-lg p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">Generate Usage Manifest</h2>
-            <form onSubmit={handleGenerate}>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Period (YYYY-MM format)
-                </label>
-                <input
+      <Modal isOpen={isGenerateOpen} onClose={onGenerateClose} size="md">
+        <ModalOverlay />
+        <ModalContent>
+          <form onSubmit={handleGenerate}>
+            <ModalHeader>Generate Usage Manifest</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <FormControl isRequired>
+                <FormLabel>Period (YYYY-MM format)</FormLabel>
+                <Input
                   type="text"
                   value={period}
                   onChange={(e) => setPeriod(e.target.value)}
                   placeholder="2024-01"
                   pattern="\d{4}-\d{2}"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  required
                 />
-              </div>
-              <div className="flex gap-2">
-                <button
-                  type="submit"
-                  className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
-                >
-                  Generate
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowGenerate(false)}
-                  className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
+              </FormControl>
+            </ModalBody>
+            <ModalFooter>
+              <Button type="submit" colorScheme="blue" mr={3}>
+                Generate
+              </Button>
+              <Button variant="ghost" onClick={onGenerateClose}>
+                Cancel
+              </Button>
+            </ModalFooter>
+          </form>
+        </ModalContent>
+      </Modal>
 
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Period
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Created At
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+      <Modal isOpen={isDetailOpen} onClose={onDetailClose} size="xl">
+        <ModalOverlay />
+        <ModalContent maxH="80vh">
+          <ModalHeader>Manifest Details</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            {selectedManifest && (
+              <>
+                <Box bg="gray.50" p={4} borderRadius="md" overflow="auto" mb={4}>
+                  <Code display="block" whiteSpace="pre-wrap" fontSize="sm">
+                    {JSON.stringify(JSON.parse(selectedManifest.manifest_data), null, 2)}
+                  </Code>
+                </Box>
+                <Box mb={4}>
+                  <Text fontSize="sm" fontWeight="medium" color="gray.700" mb={1}>
+                    Signature:
+                  </Text>
+                  <Code fontSize="xs" whiteSpace="pre-wrap" wordBreak="break-all">
+                    {selectedManifest.signature}
+                  </Code>
+                </Box>
+              </>
+            )}
+          </ModalBody>
+          <ModalFooter>
+            {selectedManifest && (
+              <Button
+                leftIcon={<DownloadIcon />}
+                colorScheme="blue"
+                onClick={() => handleDownload(selectedManifest.id)}
+                mr={2}
+              >
+                Download
+              </Button>
+            )}
+            <Button onClick={onDetailClose}>Close</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      <Box maxW="7xl" mx="auto" py={6} px={4}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={6}>
+          <Heading size="xl">Usage Manifests</Heading>
+          <Button colorScheme="blue" onClick={onGenerateOpen}>
+            Generate Manifest
+          </Button>
+        </Box>
+
+        <Box bg="white" shadow="md" rounded="lg" overflow="hidden">
+          <Table variant="simple">
+            <Thead bg="gray.50">
+              <Tr>
+                <Th>Period</Th>
+                <Th>Created At</Th>
+                <Th>Status</Th>
+                <Th>Actions</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
               {manifests.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
+                <Tr>
+                  <Td colSpan={4} textAlign="center" color="gray.500">
                     No manifests generated yet
-                  </td>
-                </tr>
+                  </Td>
+                </Tr>
               ) : (
                 manifests.map((manifest) => (
-                  <tr key={manifest.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {manifest.period}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(manifest.created_at).toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        manifest.sent_to_astack ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                      }`}>
+                  <Tr key={manifest.id}>
+                    <Td fontWeight="medium">{manifest.period}</Td>
+                    <Td>{new Date(manifest.created_at).toLocaleString()}</Td>
+                    <Td>
+                      <Badge colorScheme={manifest.sent_to_astack ? 'green' : 'yellow'}>
                         {manifest.sent_to_astack ? 'Sent' : 'Pending'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                      <button
+                      </Badge>
+                    </Td>
+                    <Td>
+                      <Button
+                        size="sm"
+                        leftIcon={<ViewIcon />}
                         onClick={() => handleViewDetails(manifest.id)}
-                        className="text-indigo-600 hover:text-indigo-900 mr-2"
+                        mr={2}
+                        colorScheme="blue"
+                        variant="outline"
                       >
                         View
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        size="sm"
+                        leftIcon={<DownloadIcon />}
                         onClick={() => handleDownload(manifest.id)}
-                        className="text-green-600 hover:text-green-900 mr-2"
+                        mr={2}
+                        colorScheme="green"
+                        variant="outline"
                       >
                         Download
-                      </button>
+                      </Button>
                       {!manifest.sent_to_astack && (
-                        <button
+                        <Button
+                          size="sm"
+                          leftIcon={<ExternalLinkIcon />}
                           onClick={() => handleSendToAStack(manifest.id)}
-                          className="text-orange-600 hover:text-orange-900"
+                          colorScheme="orange"
+                          variant="outline"
                         >
                           Send to A-Stack
-                        </button>
+                        </Button>
                       )}
-                    </td>
-                  </tr>
+                    </Td>
+                  </Tr>
                 ))
               )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+            </Tbody>
+          </Table>
+        </Box>
+      </Box>
     </>
   );
 }

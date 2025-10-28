@@ -3,11 +3,32 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
+import {
+  Box,
+  Heading,
+  Button,
+  Card,
+  CardHeader,
+  CardBody,
+  Grid,
+  Badge,
+  Spinner,
+  Text,
+  Alert,
+  AlertIcon,
+  Code,
+  Flex,
+  Divider,
+  IconButton,
+} from '@chakra-ui/react';
+import { ArrowBackIcon, DownloadIcon, DeleteIcon, CheckIcon, WarningIcon } from '@chakra-ui/icons';
+import { useToast } from '@chakra-ui/react';
 
 export default function SiteDetailPage() {
   const params = useParams();
   const router = useRouter();
   const siteId = params.id as string;
+  const toast = useToast();
   
   const [site, setSite] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -25,7 +46,6 @@ export default function SiteDetailPage() {
       const siteData = response.data.license;
       setSite(siteData);
       
-      // Parse license data and fingerprint
       if (siteData.license_data) {
         try {
           const parsed = JSON.parse(siteData.license_data);
@@ -56,11 +76,15 @@ export default function SiteDetailPage() {
       const licenseDataStr = response.data.license?.license_data;
       
       if (!licenseDataStr) {
-        alert('No license data available');
+        toast({
+          title: 'Error',
+          description: 'No license data available',
+          status: 'error',
+          duration: 3000,
+        });
         return;
       }
 
-      // Create downloadable JSON file
       const blob = new Blob([licenseDataStr], { type: 'application/json' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -70,8 +94,19 @@ export default function SiteDetailPage() {
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
+      toast({
+        title: 'Success',
+        description: 'License file downloaded',
+        status: 'success',
+        duration: 3000,
+      });
     } catch (err) {
-      alert('Failed to download license file');
+      toast({
+        title: 'Error',
+        description: 'Failed to download license file',
+        status: 'error',
+        duration: 3000,
+      });
     }
   };
 
@@ -81,128 +116,182 @@ export default function SiteDetailPage() {
     try {
       await apiClient.deleteSite(siteId);
       router.push('/dashboard/sites');
+      toast({
+        title: 'Success',
+        description: 'Site revoked successfully',
+        status: 'success',
+        duration: 3000,
+      });
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to revoke site');
+      toast({
+        title: 'Error',
+        description: err.response?.data?.error || 'Failed to revoke site',
+        status: 'error',
+        duration: 3000,
+      });
     }
   };
 
-  if (loading) return <div className="flex items-center justify-center h-96">Loading...</div>;
-  if (error) return <div className="text-center py-8 text-red-600">{error}</div>;
-  if (!site) return <div className="text-center py-8">Site not found</div>;
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minH="400px">
+        <Spinner size="xl" />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box maxW="7xl" mx="auto" py={8} px={4}>
+        <Alert status="error">
+          <AlertIcon />
+          {error}
+        </Alert>
+      </Box>
+    );
+  }
+
+  if (!site) {
+    return (
+      <Box maxW="7xl" mx="auto" py={8} px={4}>
+        <Alert status="info">
+          <AlertIcon />
+          Site not found
+        </Alert>
+      </Box>
+    );
+  }
 
   return (
-    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div className="px-4 py-6 sm:px-0">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <button
-              onClick={() => router.push('/dashboard/sites')}
-              className="text-indigo-600 hover:text-indigo-900 mb-2"
+    <Box maxW="7xl" mx="auto" py={6} px={4}>
+      <Flex justify="space-between" align="center" mb={6}>
+        <Box>
+          <Button
+            variant="link"
+            colorScheme="blue"
+            leftIcon={<ArrowBackIcon />}
+            onClick={() => router.push('/dashboard/sites')}
+            mb={2}
+          >
+            Back to Sites
+          </Button>
+          <Heading size="xl">Site Details</Heading>
+          <Text color="gray.600" mt={1}>{siteId}</Text>
+        </Box>
+        <Box>
+          <Button
+            leftIcon={<DownloadIcon />}
+            colorScheme="blue"
+            onClick={handleDownload}
+            mr={2}
+          >
+            Download License
+          </Button>
+          {site.status !== 'revoked' && (
+            <Button
+              leftIcon={<DeleteIcon />}
+              colorScheme="red"
+              onClick={handleRevoke}
             >
-              ← Back to Sites
-            </button>
-            <h1 className="text-3xl font-bold text-gray-900">Site Details</h1>
-            <p className="text-gray-600 mt-1">{siteId}</p>
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={handleDownload}
-              className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
-            >
-              Download License
-            </button>
-            {site.status !== 'revoked' && (
-              <button
-                onClick={handleRevoke}
-                className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
-              >
-                Revoke Site
-              </button>
-            )}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          {/* Basic Info Card */}
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">Basic Information</h2>
-            <dl className="grid grid-cols-1 gap-4">
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Site ID</dt>
-                <dd className="mt-1 text-sm text-gray-900">{site.site_id}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Status</dt>
-                <dd className="mt-1">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    site.status === 'active' ? 'bg-green-100 text-green-800' : 
-                    site.status === 'revoked' ? 'bg-red-100 text-red-800' : 
-                    'bg-gray-100 text-gray-800'
-                  }`}>
-                    {site.status}
-                  </span>
-                </dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Issued At</dt>
-                <dd className="mt-1 text-sm text-gray-900">{new Date(site.issued_at).toLocaleString()}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Last Seen</dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {site.last_seen ? new Date(site.last_seen).toLocaleString() : 'Never'}
-                </dd>
-              </div>
-            </dl>
-          </div>
-
-          {/* Fingerprint Info Card */}
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">Fingerprint</h2>
-            {fingerprint && Object.keys(fingerprint).length > 0 ? (
-              <dl className="grid grid-cols-1 gap-4">
-                {Object.entries(fingerprint).map(([key, value]) => (
-                  <div key={key}>
-                    <dt className="text-sm font-medium text-gray-500 capitalize">{key.replace('_', ' ')}</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{String(value)}</dd>
-                  </div>
-                ))}
-              </dl>
-            ) : (
-              <p className="text-sm text-gray-500">No fingerprint information available</p>
-            )}
-          </div>
-        </div>
-
-        {/* License Data Card */}
-        <div className="bg-white shadow rounded-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">License Data</h2>
-          {licenseData ? (
-            <div className="bg-gray-50 rounded-lg p-4 overflow-auto">
-              <pre className="text-sm text-gray-900 whitespace-pre-wrap">
-                {JSON.stringify(licenseData, null, 2)}
-              </pre>
-            </div>
-          ) : (
-            <p className="text-sm text-gray-500">No license data available</p>
+              Revoke Site
+            </Button>
           )}
-        </div>
+        </Box>
+      </Flex>
 
-        {/* Signature Card */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-4">Signature</h2>
-          <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-900 font-mono break-all">{site.signature}</p>
-            {site.signature && !site.signature.startsWith('TODO:') ? (
-              <p className="text-sm text-green-600 mt-2">✓ Valid ECDSA signature</p>
+      <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }} gap={6} mb={6}>
+        <Card>
+          <CardHeader>
+            <Heading size="md">Basic Information</Heading>
+          </CardHeader>
+          <CardBody>
+            <Box mb={4}>
+              <Text fontSize="sm" color="gray.500" mb={1}>Site ID</Text>
+              <Text fontWeight="medium">{site.site_id}</Text>
+            </Box>
+            <Divider mb={4} />
+            <Box mb={4}>
+              <Text fontSize="sm" color="gray.500" mb={1}>Status</Text>
+              <Badge
+                colorScheme={
+                  site.status === 'active' ? 'green' :
+                  site.status === 'revoked' ? 'red' : 'gray'
+                }
+              >
+                {site.status}
+              </Badge>
+            </Box>
+            <Divider mb={4} />
+            <Box mb={4}>
+              <Text fontSize="sm" color="gray.500" mb={1}>Issued At</Text>
+              <Text>{new Date(site.issued_at).toLocaleString()}</Text>
+            </Box>
+            <Divider mb={4} />
+            <Box>
+              <Text fontSize="sm" color="gray.500" mb={1}>Last Seen</Text>
+              <Text>{site.last_seen ? new Date(site.last_seen).toLocaleString() : 'Never'}</Text>
+            </Box>
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <Heading size="md">Fingerprint</Heading>
+          </CardHeader>
+          <CardBody>
+            {fingerprint && Object.keys(fingerprint).length > 0 ? (
+              Object.entries(fingerprint).map(([key, value], index) => (
+                <Box key={key} mb={index < Object.keys(fingerprint).length - 1 ? 4 : 0}>
+                  <Text fontSize="sm" color="gray.500" mb={1} textTransform="capitalize">
+                    {key.replace('_', ' ')}
+                  </Text>
+                  <Text>{String(value)}</Text>
+                  {index < Object.keys(fingerprint).length - 1 && <Divider mt={4} />}
+                </Box>
+              ))
             ) : (
-              <p className="text-sm text-yellow-600 mt-2">⚠ Placeholder signature</p>
+              <Text fontSize="sm" color="gray.500">No fingerprint information available</Text>
             )}
-          </div>
-        </div>
-      </div>
-    </div>
+          </CardBody>
+        </Card>
+      </Grid>
+
+      <Card mb={6}>
+        <CardHeader>
+          <Heading size="md">License Data</Heading>
+        </CardHeader>
+        <CardBody>
+          {licenseData ? (
+            <Code p={4} borderRadius="md" display="block" whiteSpace="pre-wrap" overflowX="auto">
+              {JSON.stringify(licenseData, null, 2)}
+            </Code>
+          ) : (
+            <Text fontSize="sm" color="gray.500">No license data available</Text>
+          )}
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <Heading size="md">Signature</Heading>
+        </CardHeader>
+        <CardBody>
+          <Code p={4} borderRadius="md" display="block" wordBreak="break-all">
+            {site.signature}
+          </Code>
+          {site.signature && !site.signature.startsWith('TODO:') ? (
+            <Flex align="center" mt={2} color="green.600">
+              <CheckIcon mr={2} />
+              <Text fontSize="sm">Valid ECDSA signature</Text>
+            </Flex>
+          ) : (
+            <Flex align="center" mt={2} color="yellow.600">
+              <WarningIcon mr={2} />
+              <Text fontSize="sm">Placeholder signature</Text>
+            </Flex>
+          )}
+        </CardBody>
+      </Card>
+    </Box>
   );
 }
-
