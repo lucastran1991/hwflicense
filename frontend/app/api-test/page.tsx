@@ -302,11 +302,11 @@ export default function APITestPage() {
   };
 
   return (
-    <Box minH="100vh" bg="gray.50" py={8} px={4}>
+    <Box minH="100vh" bg="transparent" py={8} px={4}>
       <Box maxW="7xl" mx="auto">
         <VStack align="stretch" spacing={6} mb={8}>
-          <Heading size="xl" mb={2}>API Testing & Documentation</Heading>
-          <Text color="gray.600">Test all 18 backend API endpoints with live examples</Text>
+          <Heading size="xl" mb={2} color="white">API Testing & Documentation</Heading>
+          <Text color="whiteAlpha.800">Test all 18 backend API endpoints with live examples</Text>
           
           {/* Auth Token Display */}
           <Alert status={token ? 'success' : 'warning'} borderRadius="md">
@@ -344,7 +344,7 @@ export default function APITestPage() {
           <VStack spacing={4} align="stretch">
             <Card>
               <CardBody>
-                <Heading size="md" mb={4}>All API Endpoints (18)</Heading>
+                <Heading size="md" mb={4} color="white">All API Endpoints (18)</Heading>
                 <Box maxH="600px" overflowY="auto">
                   {API_ENDPOINTS.map((endpoint, index) => (
                     <Box
@@ -353,8 +353,8 @@ export default function APITestPage() {
                       borderWidth="1px"
                       borderRadius="md"
                       cursor="pointer"
-                      bg={selectedEndpoint?.path === endpoint.path ? 'indigo.50' : 'white'}
-                      borderColor={selectedEndpoint?.path === endpoint.path ? 'indigo.500' : 'gray.200'}
+                      bg={selectedEndpoint?.path === endpoint.path ? 'brand.900' : 'rgba(45, 27, 78, 0.5)'}
+                      borderColor={selectedEndpoint?.path === endpoint.path ? 'brand.500' : 'purple.600'}
                       onClick={() => {
                         setSelectedEndpoint(endpoint);
                         setRequestBody(endpoint.example ? JSON.stringify(endpoint.example, null, 2) : '');
@@ -365,10 +365,10 @@ export default function APITestPage() {
                     >
                       <Flex align="center" gap={2} mb={1}>
                         <Badge colorScheme={getMethodColor(endpoint.method)}>{endpoint.method}</Badge>
-                        <Text fontSize="xs" color="gray.600">{endpoint.auth ? '🔒 Auth' : '🌐 Public'}</Text>
+                        <Text fontSize="xs" color="whiteAlpha.700">{endpoint.auth ? '🔒 Auth' : '🌐 Public'}</Text>
                       </Flex>
                       <Code fontSize="sm">{endpoint.path}</Code>
-                      <Text fontSize="xs" color="gray.600" mt={1}>{endpoint.description}</Text>
+                      <Text fontSize="xs" color="whiteAlpha.700" mt={1}>{endpoint.description}</Text>
                     </Box>
                   ))}
                 </Box>
@@ -391,17 +391,17 @@ export default function APITestPage() {
                           </Badge>
                           <Code fontSize="sm">{selectedEndpoint.path}</Code>
                         </Flex>
-                        <Text color="gray.700">{selectedEndpoint.description}</Text>
+                        <Text color="whiteAlpha.900">{selectedEndpoint.description}</Text>
                       </Box>
                     </Flex>
 
                     {/* Parameters */}
                     {selectedEndpoint.params && selectedEndpoint.params.length > 0 && (
                       <Box mb={4}>
-                        <Text fontWeight="semibold" fontSize="sm" mb={2}>Query Parameters:</Text>
+                        <Text fontWeight="semibold" fontSize="sm" mb={2} color="white">Query Parameters:</Text>
                         <UnorderedList spacing={1} fontSize="xs">
                           {selectedEndpoint.params.map((param, idx) => (
-                            <ListItem key={idx} color="gray.600">
+                            <ListItem key={idx} color="whiteAlpha.700">
                               <Code>{param.name}</Code> ({param.type}) {param.required ? '(required)' : '(optional)'} - {param.description}
                             </ListItem>
                           ))}
@@ -412,7 +412,7 @@ export default function APITestPage() {
                     {/* Body Parameters */}
                     {selectedEndpoint.body && selectedEndpoint.body.length > 0 && (
                       <Box mb={4}>
-                        <Text fontWeight="semibold" fontSize="sm" mb={2}>Request Body:</Text>
+                        <Text fontWeight="semibold" fontSize="sm" mb={2} color="white">Request Body:</Text>
                         <Button
                           size="xs"
                           colorScheme="indigo"
@@ -459,19 +459,19 @@ export default function APITestPage() {
                   <Card>
                     <CardBody>
                       <Flex justify="space-between" align="center" mb={4}>
-                        <Heading size="md">Response</Heading>
+                        <Heading size="md" color="white">Response</Heading>
                         <Badge colorScheme={response.status >= 200 && response.status < 300 ? 'green' : 'red'}>
                           Status: {response.status}
                         </Badge>
                       </Flex>
                       <Box
-                        bg="gray.50"
+                        bg="rgba(0,0,0,0.3)"
                         p={4}
                         borderRadius="md"
                         overflow="auto"
                         maxH="400px"
                       >
-                        <Code fontSize="xs" display="block" whiteSpace="pre-wrap">
+                        <Code fontSize="xs" display="block" whiteSpace="pre-wrap" color="pink.200">
                           {JSON.stringify(response.data || response.error, null, 2)}
                         </Code>
                       </Box>
@@ -494,7 +494,7 @@ export default function APITestPage() {
             {!selectedEndpoint && (
               <Card>
                 <CardBody>
-                  <Text textAlign="center" color="gray.500">
+                  <Text textAlign="center" color="whiteAlpha.600">
                     Select an API endpoint from the list to start testing
                   </Text>
                 </CardBody>
@@ -507,32 +507,32 @@ export default function APITestPage() {
         <Grid templateColumns={{ base: '1fr', md: 'repeat(4, 1fr)' }} gap={4} mt={8}>
           <Card>
             <CardBody>
-              <Text fontSize="2xl" fontWeight="bold" color="indigo.600">{API_ENDPOINTS.length}</Text>
-              <Text fontSize="sm" color="gray.600">Total Endpoints</Text>
+              <Text fontSize="2xl" fontWeight="bold" color="brand.400">{API_ENDPOINTS.length}</Text>
+              <Text fontSize="sm" color="whiteAlpha.700">Total Endpoints</Text>
             </CardBody>
           </Card>
           <Card>
             <CardBody>
-              <Text fontSize="2xl" fontWeight="bold" color="green.600">
+              <Text fontSize="2xl" fontWeight="bold" color="pink.400">
                 {API_ENDPOINTS.filter(e => e.auth).length}
               </Text>
-              <Text fontSize="sm" color="gray.600">Protected</Text>
+              <Text fontSize="sm" color="whiteAlpha.700">Protected</Text>
             </CardBody>
           </Card>
           <Card>
             <CardBody>
-              <Text fontSize="2xl" fontWeight="bold" color="blue.600">
+              <Text fontSize="2xl" fontWeight="bold" color="purple.400">
                 {API_ENDPOINTS.filter(e => !e.auth).length}
               </Text>
-              <Text fontSize="sm" color="gray.600">Public</Text>
+              <Text fontSize="sm" color="whiteAlpha.700">Public</Text>
             </CardBody>
           </Card>
           <Card>
             <CardBody>
-              <Text fontSize="2xl" fontWeight="bold" color="purple.600">
+              <Text fontSize="2xl" fontWeight="bold" color="brand.300">
                 {API_ENDPOINTS.filter(e => e.method === 'POST').length}
               </Text>
-              <Text fontSize="sm" color="gray.600">POST Methods</Text>
+              <Text fontSize="sm" color="whiteAlpha.700">POST Methods</Text>
             </CardBody>
           </Card>
         </Grid>
