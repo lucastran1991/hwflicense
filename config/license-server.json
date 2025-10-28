@@ -1,6 +1,6 @@
 {
   "mode": "dev",
-  "port": "8081",
+  "port": "8082",
   "database_path": "license-server/data/license_server.db",
   "jwt_secret": "license-server-secret-key-change-in-production",
   "environment": "development"

@@ -8,7 +8,15 @@ echo "License Server - 7 Core APIs Test"
 echo "========================================="
 echo ""
 
-BASE_URL="${LICENSE_SERVER_URL:-http://localhost:8081}"
+# Get URL from first argument or environment variable
+if [ -n "$1" ]; then
+    BASE_URL="$1"
+elif [ -n "$LICENSE_SERVER_URL" ]; then
+    BASE_URL="$LICENSE_SERVER_URL"
+else
+    BASE_URL="http://localhost:8081"
+fi
+
 echo "Testing against: $BASE_URL"
 echo ""
 

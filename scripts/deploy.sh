@@ -120,33 +120,35 @@ else
 fi
 echo ""
 
-# Step 3: Build License Server (if it exists)
-if [ -d "$LICENSE_SERVER_DIR/cmd" ]; then
-    log_info "Building License Server..."
-    cd "$LICENSE_SERVER_DIR"
+# Step 3: Build License Server
+log_info "Building License Server..."
+cd "$LICENSE_SERVER_DIR"
 
-    # Clean previous builds
-    if [ -f "$LICENSE_SERVER_DIR/license-server" ]; then
-        log_info "Removing previous License Server build..."
-        rm -f "$LICENSE_SERVER_DIR/license-server"
-    fi
-
-    # Build License Server
-    log_info "Compiling License Server..."
-    go build -ldflags="-s -w" -o license-server cmd/license-server/main.go
-
-    if [ -f "$LICENSE_SERVER_DIR/license-server" ]; then
-        log_info "✓ License Server built successfully"
-        ls -lh "$LICENSE_SERVER_DIR/license-server"
-    else
-        log_error "License Server build failed"
-        exit 1
-    fi
-    echo ""
-else
-    log_warn "License Server directory not found or incomplete - skipping build"
-    echo ""
+# Clean previous builds
+if [ -f "$LICENSE_SERVER_DIR/license-server" ]; then
+    log_info "Removing previous License Server build..."
+    rm -f "$LICENSE_SERVER_DIR/license-server"
 fi
+
+# Initialize Go module if needed
+if [ ! -f "$LICENSE_SERVER_DIR/go.mod" ]; then
+    log_error "License Server go.mod not found"
+    exit 1
+fi
+
+# Build License Server
+log_info "Compiling License Server..."
+go mod download
+go build -ldflags="-s -w" -o license-server cmd/license-server/main.go
+
+if [ -f "$LICENSE_SERVER_DIR/license-server" ]; then
+    log_info "✓ License Server built successfully"
+    ls -lh "$LICENSE_SERVER_DIR/license-server"
+else
+    log_error "License Server build failed"
+    exit 1
+fi
+echo ""
 
 # Step 4: Create deployment package
 log_info "Creating deployment package..."
@@ -163,11 +165,9 @@ cp -r "$BACKEND_DIR/migrations" "$DEPLOY_DIR/"
 cp -r "$BACKEND_DIR/keys" "$DEPLOY_DIR/" 2>/dev/null || true
 mkdir -p "$DEPLOY_DIR/data"
 
-# Copy License Server (if it exists)
-if [ -f "$LICENSE_SERVER_DIR/license-server" ]; then
-    cp "$LICENSE_SERVER_DIR/license-server" "$DEPLOY_DIR/"
-    cp -r "$LICENSE_SERVER_DIR/migrations" "$DEPLOY_DIR/ls-migrations/" 2>/dev/null || true
-fi
+# Copy License Server
+cp "$LICENSE_SERVER_DIR/license-server" "$DEPLOY_DIR/"
+cp -r "$LICENSE_SERVER_DIR/migrations" "$DEPLOY_DIR/ls-migrations/" 2>/dev/null || true
 mkdir -p "$DEPLOY_DIR/data"
 
 # Copy frontend build
