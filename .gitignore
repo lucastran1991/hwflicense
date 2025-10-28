@@ -83,6 +83,8 @@ license-server/data/
 deploy/
 license-server/license-server
 backend/server
+license-server/data/
+license-server/*.log
 
 # Keys (gitignored for security)
 backend/keys/
