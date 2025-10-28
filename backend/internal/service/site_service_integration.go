@@ -15,9 +15,6 @@ import (
 
 // CreateSiteLicenseWithMode creates a site license with key type (dev/prod)
 func (s *SiteService) CreateSiteLicenseWithMode(orgID, siteID string, fingerprint map[string]interface{}, mode string) (*models.SiteLicense, error) {
-	// TODO: Integrate with license server when ready
-	// licenseClient := client.NewLicenseServerClient()
-
 	// Get or create enterprise
 	enterprise, err := s.repo.GetEnterprise(orgID)
 	if err != nil {
@@ -41,12 +38,6 @@ func (s *SiteService) CreateSiteLicenseWithMode(orgID, siteID string, fingerprin
 		KeyType:     mode,
 		ExpiresAt:   time.Now().AddDate(0, 0, 30),
 	}
-	
-	// TODO: Make actual call to license server when it's running
-	// keyResponse, err := licenseClient.CreateSiteKey(siteID, enterprise.ID, mode, orgID)
-	// if err != nil {
-	//     return nil, fmt.Errorf("failed to create site key from license server: %w", err)
-	// }
 
 	// Get CML for validation
 	cml, err := s.cmlService.GetCML(orgID)

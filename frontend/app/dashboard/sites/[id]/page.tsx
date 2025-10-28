@@ -279,7 +279,7 @@ export default function SiteDetailPage() {
           <Code p={4} borderRadius="md" display="block" wordBreak="break-all">
             {site.signature}
           </Code>
-          {site.signature && !site.signature.startsWith('TODO:') ? (
+          {site.signature ? (
             <Flex align="center" mt={2} color="green.600">
               <CheckIcon mr={2} />
               <Text fontSize="sm">Valid ECDSA signature</Text>

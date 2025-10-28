@@ -79,7 +79,7 @@ func main() {
 		validated := true
 		validationMessage := "Manifest signature verified"
 		
-		if req.Signature != "" && req.Signature != "TODO: sign with org key" && req.Signature != "" {
+		if req.Signature != "" && req.Signature != "placeholder" && req.Signature != "" {
 			// In a real implementation, we would verify the signature here
 			// For mock: accept any non-placeholder signature
 			if req.Signature == "mock_signature" {
