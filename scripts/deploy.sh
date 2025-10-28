@@ -120,28 +120,33 @@ else
 fi
 echo ""
 
-# Step 3: Build License Server
-log_info "Building License Server..."
-cd "$LICENSE_SERVER_DIR"
+# Step 3: Build License Server (if it exists)
+if [ -d "$LICENSE_SERVER_DIR/cmd" ]; then
+    log_info "Building License Server..."
+    cd "$LICENSE_SERVER_DIR"
 
-# Clean previous builds
-if [ -f "$LICENSE_SERVER_DIR/license-server" ]; then
-    log_info "Removing previous License Server build..."
-    rm -f "$LICENSE_SERVER_DIR/license-server"
-fi
+    # Clean previous builds
+    if [ -f "$LICENSE_SERVER_DIR/license-server" ]; then
+        log_info "Removing previous License Server build..."
+        rm -f "$LICENSE_SERVER_DIR/license-server"
+    fi
 
-# Build License Server
-log_info "Compiling License Server..."
-go build -ldflags="-s -w" -o license-server cmd/license-server/main.go
+    # Build License Server
+    log_info "Compiling License Server..."
+    go build -ldflags="-s -w" -o license-server cmd/license-server/main.go
 
-if [ -f "$LICENSE_SERVER_DIR/license-server" ]; then
-    log_info "✓ License Server built successfully"
-    ls -lh "$LICENSE_SERVER_DIR/license-server"
+    if [ -f "$LICENSE_SERVER_DIR/license-server" ]; then
+        log_info "✓ License Server built successfully"
+        ls -lh "$LICENSE_SERVER_DIR/license-server"
+    else
+        log_error "License Server build failed"
+        exit 1
+    fi
+    echo ""
 else
-    log_error "License Server build failed"
-    exit 1
+    log_warn "License Server directory not found or incomplete - skipping build"
+    echo ""
 fi
-echo ""
 
 # Step 4: Create deployment package
 log_info "Creating deployment package..."
@@ -158,9 +163,11 @@ cp -r "$BACKEND_DIR/migrations" "$DEPLOY_DIR/"
 cp -r "$BACKEND_DIR/keys" "$DEPLOY_DIR/" 2>/dev/null || true
 mkdir -p "$DEPLOY_DIR/data"
 
-# Copy License Server
-cp "$LICENSE_SERVER_DIR/license-server" "$DEPLOY_DIR/"
-cp -r "$LICENSE_SERVER_DIR/migrations" "$DEPLOY_DIR/ls-migrations/" 2>/dev/null || true
+# Copy License Server (if it exists)
+if [ -f "$LICENSE_SERVER_DIR/license-server" ]; then
+    cp "$LICENSE_SERVER_DIR/license-server" "$DEPLOY_DIR/"
+    cp -r "$LICENSE_SERVER_DIR/migrations" "$DEPLOY_DIR/ls-migrations/" 2>/dev/null || true
+fi
 mkdir -p "$DEPLOY_DIR/data"
 
 # Copy frontend build
@@ -175,10 +182,8 @@ cp "$FRONTEND_DIR/next.config.js" "$DEPLOY_DIR/frontend/" 2>/dev/null || true
 # Note: node_modules will be installed by wrapper-frontend.sh when starting
 # This avoids issues with symlinks and platform-specific binaries
 
-# Copy PM2 files (if exist)
-if [ -f "$PROJECT_ROOT/ecosystem.config.js" ]; then
-    cp "$PROJECT_ROOT/ecosystem.config.js" "$DEPLOY_DIR/"
-fi
+# Copy PM2 files
+cp "$PROJECT_ROOT/ecosystem.config.js" "$DEPLOY_DIR/"
 
 # Copy wrapper scripts
 cp "$PROJECT_ROOT/wrapper-license-server.sh" "$DEPLOY_DIR/" 2>/dev/null || true
