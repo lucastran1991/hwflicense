@@ -65,25 +65,25 @@ export default function DashboardPage() {
 
   return (
     <Box maxW="7xl" mx="auto" py={6} px={4}>
-      <Heading size="xl" mb={6}>Dashboard</Heading>
+      <Heading size="xl" mb={6} color="white">Dashboard</Heading>
 
       {cml ? (
         <Card mb={6}>
           <CardHeader>
-            <Heading size="md">CML Status</Heading>
+            <Heading size="md" color="white">CML Status</Heading>
           </CardHeader>
           <CardBody>
             <Grid templateColumns="repeat(3, 1fr)" gap={4}>
               <Box>
-                <Text fontSize="sm" color="gray.500" mb={1}>Organization ID</Text>
+                <Text fontSize="sm" color="whiteAlpha.600" mb={1}>Organization ID</Text>
                 <Text fontSize="lg" fontWeight="medium">{cml.cml?.org_id || 'N/A'}</Text>
               </Box>
               <Box>
-                <Text fontSize="sm" color="gray.500" mb={1}>Max Sites</Text>
+                <Text fontSize="sm" color="whiteAlpha.600" mb={1}>Max Sites</Text>
                 <Text fontSize="lg" fontWeight="medium">{cml.cml?.max_sites || 'N/A'}</Text>
               </Box>
               <Box>
-                <Text fontSize="sm" color="gray.500" mb={1}>Status</Text>
+                <Text fontSize="sm" color="whiteAlpha.600" mb={1}>Status</Text>
                 <Badge colorScheme="green">Active</Badge>
               </Box>
             </Grid>
@@ -98,7 +98,7 @@ export default function DashboardPage() {
       <Card>
         <CardHeader>
           <Box display="flex" justifyContent="space-between" alignItems="center">
-            <Heading size="md">Sites Overview</Heading>
+            <Heading size="md" color="white">Sites Overview</Heading>
             <Box>
               <Button colorScheme="gray" mr={2} as="a" href="/dashboard/sites">
                 Manage Sites
@@ -111,7 +111,7 @@ export default function DashboardPage() {
         </CardHeader>
         <CardBody>
           {sites.length === 0 ? (
-            <Text color="gray.500">No sites created yet.</Text>
+            <Text color="whiteAlpha.600">No sites created yet.</Text>
           ) : (
             <Box overflowX="auto">
               <Table variant="simple">

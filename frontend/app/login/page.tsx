@@ -38,15 +38,15 @@ export default function LoginPage() {
   };
 
   return (
-    <Box minH="100vh" display="flex" alignItems="center" justifyContent="center" bg="gray.50">
+    <Box minH="100vh" display="flex" alignItems="center" justifyContent="center">
       <Container maxW="md">
-        <Box bg="white" p={8} rounded="lg" shadow="md">
+        <Box bg="rgba(74, 44, 109, 0.8)" backdropFilter="blur(20px)" p={8} borderRadius="lg" borderColor="rgba(217, 70, 239, 0.3)" borderWidth="1px">
           <VStack spacing={6} align="stretch">
             <Box>
-              <Heading textAlign="center" size="xl" color="gray.900">
+              <Heading textAlign="center" size="xl" color="white">
                 TaskMaster License Hub
               </Heading>
-              <Text textAlign="center" color="gray.600" mt={2}>
+              <Text textAlign="center" color="whiteAlpha.800" mt={2}>
                 Sign in to manage your licenses
               </Text>
             </Box>
@@ -92,7 +92,7 @@ export default function LoginPage() {
                   Sign in
                 </Button>
 
-                <Text fontSize="sm" color="gray.600" textAlign="center">
+                <Text fontSize="sm" color="whiteAlpha.600" textAlign="center">
                   Default credentials: admin / admin123
                 </Text>
               </VStack>
