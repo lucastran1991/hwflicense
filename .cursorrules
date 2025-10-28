@@ -1,0 +1,44 @@
+# Cursor Rules
+
+## Language Rules
+
+### Chat Responses
+- **Always respond in Vietnamese** when user is chatting
+- Use Vietnamese for all explanations, summaries, and discussions
+- Provide detailed explanations in Vietnamese
+
+### Code & Documentation
+- **Use English everywhere** outside of chat box
+- All code must be in English (comments, variable names, functions)
+- All documentation files must be in English
+- All file names must be in English
+- All commit messages must be in English
+- All API documentation must be in English
+
+### Examples
+
+**Chat Response (Vietnamese):**
+```
+Tôi sẽ tạo API endpoint mới cho việc xử lý license...
+```
+
+**Code (English):**
+```javascript
+// Create new license endpoint
+function createLicense() {
+    // License creation logic
+}
+```
+
+**Documentation (English):**
+```markdown
+# License Creation API
+
+This endpoint allows you to create new licenses...
+```
+
+### Special Cases
+- If user explicitly asks in English, respond in English
+- For technical terms, use English with Vietnamese explanation
+- Code examples should always be in English with Vietnamese comments
+
