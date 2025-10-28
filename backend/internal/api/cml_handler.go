@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/csv"
+	"encoding/json"
 	"mime/multipart"
 	"net/http"
 
@@ -19,9 +20,9 @@ func NewCMLHandler(cmlService *service.CMLService) *CMLHandler {
 }
 
 type UploadCMLRequest struct {
-	CMLData   string `json:"cml_data" binding:"required"`
-	Signature string `json:"signature" binding:"required"`
-	PublicKey string `json:"public_key" binding:"required"`
+	CMLData   map[string]interface{} `json:"cml_data" binding:"required"`
+	Signature string                 `json:"signature" binding:"required"`
+	PublicKey string                 `json:"public_key" binding:"required"`
 }
 
 type RefreshCMLRequest struct {
@@ -45,7 +46,14 @@ func (h *CMLHandler) UploadCML(c *gin.Context) {
 		return
 	}
 
-	cml, err := h.cmlService.UploadCML(req.CMLData, req.Signature, req.PublicKey)
+	// Marshal CMLData to JSON string
+	cmlDataJSON, err := json.Marshal(req.CMLData)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to marshal cml_data: " + err.Error()})
+		return
+	}
+
+	cml, err := h.cmlService.UploadCML(string(cmlDataJSON), req.Signature, req.PublicKey)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
