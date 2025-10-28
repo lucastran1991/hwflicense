@@ -10,7 +10,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 BACKEND_DIR="$PROJECT_ROOT/backend"
 FRONTEND_DIR="$PROJECT_ROOT/frontend"
-LICENSE_SERVER_DIR="$PROJECT_ROOT/license-server"
 
 # Colors
 GREEN='\033[0;32m'
@@ -29,14 +28,12 @@ parse_config() {
 
 # Try to read mode from config files
 BACKEND_MODE=$(parse_config "$PROJECT_ROOT/config/backend.json" "mode" 2>/dev/null || echo "$ENVIRONMENT")
-LICENSE_SERVER_MODE=$(parse_config "$PROJECT_ROOT/config/license-server.json" "mode" 2>/dev/null || echo "$ENVIRONMENT")
 FRONTEND_MODE=$(parse_config "$PROJECT_ROOT/config/frontend.json" "mode" 2>/dev/null || echo "$ENVIRONMENT")
 
 echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}TaskMaster License System Deployment${NC}"
 echo -e "${GREEN}Environment: $ENVIRONMENT${NC}"
 echo -e "${GREEN}Backend Mode: $BACKEND_MODE${NC}"
-echo -e "${GREEN}License Server Mode: $LICENSE_SERVER_MODE${NC}"
 echo -e "${GREEN}Frontend Mode: $FRONTEND_MODE${NC}"
 echo -e "${GREEN}========================================${NC}"
 echo ""
@@ -120,37 +117,7 @@ else
 fi
 echo ""
 
-# Step 3: Build License Server
-log_info "Building License Server..."
-cd "$LICENSE_SERVER_DIR"
-
-# Clean previous builds
-if [ -f "$LICENSE_SERVER_DIR/license-server" ]; then
-    log_info "Removing previous License Server build..."
-    rm -f "$LICENSE_SERVER_DIR/license-server"
-fi
-
-# Initialize Go module if needed
-if [ ! -f "$LICENSE_SERVER_DIR/go.mod" ]; then
-    log_error "License Server go.mod not found"
-    exit 1
-fi
-
-# Build License Server
-log_info "Compiling License Server..."
-go mod download
-go build -ldflags="-s -w" -o license-server cmd/license-server/main.go
-
-if [ -f "$LICENSE_SERVER_DIR/license-server" ]; then
-    log_info "✓ License Server built successfully"
-    ls -lh "$LICENSE_SERVER_DIR/license-server"
-else
-    log_error "License Server build failed"
-    exit 1
-fi
-echo ""
-
-# Step 4: Create deployment package
+# Step 3: Create deployment package
 log_info "Creating deployment package..."
 
 DEPLOY_DIR="$PROJECT_ROOT/deploy"
@@ -163,11 +130,6 @@ cp -r "$PROJECT_ROOT/config" "$DEPLOY_DIR/"
 cp -r "$BACKEND_DIR/server" "$DEPLOY_DIR/"
 cp -r "$BACKEND_DIR/migrations" "$DEPLOY_DIR/"
 cp -r "$BACKEND_DIR/keys" "$DEPLOY_DIR/" 2>/dev/null || true
-mkdir -p "$DEPLOY_DIR/data"
-
-# Copy License Server
-cp "$LICENSE_SERVER_DIR/license-server" "$DEPLOY_DIR/"
-cp -r "$LICENSE_SERVER_DIR/migrations" "$DEPLOY_DIR/ls-migrations/" 2>/dev/null || true
 mkdir -p "$DEPLOY_DIR/data"
 
 # Copy frontend build
@@ -186,7 +148,6 @@ cp "$FRONTEND_DIR/next.config.js" "$DEPLOY_DIR/frontend/" 2>/dev/null || true
 cp "$PROJECT_ROOT/ecosystem.config.js" "$DEPLOY_DIR/"
 
 # Copy wrapper scripts
-cp "$PROJECT_ROOT/wrapper-license-server.sh" "$DEPLOY_DIR/" 2>/dev/null || true
 cp "$PROJECT_ROOT/wrapper-backend.sh" "$DEPLOY_DIR/" 2>/dev/null || true
 cp "$PROJECT_ROOT/wrapper-frontend.sh" "$DEPLOY_DIR/" 2>/dev/null || true
 
@@ -238,11 +199,6 @@ else
     # Fallback to shell scripts
     mkdir -p logs
     
-    # Start License Server with wrapper
-    ./wrapper-license-server.sh >> logs/system.log 2>&1 &
-    LICENSE_SERVER_PID=$!
-    echo $LICENSE_SERVER_PID > .license_server.pid
-    
     # Start backend with wrapper
     ./wrapper-backend.sh >> logs/system.log 2>&1 &
     BACKEND_PID=$!
@@ -256,7 +212,6 @@ else
     echo "====================================="
     echo "TaskMaster License System started"
     echo "====================================="
-    echo "License Server PID: $LICENSE_SERVER_PID (http://localhost:8081)"
     echo "Backend PID: $BACKEND_PID (http://localhost:8080)"
     echo "Frontend PID: $FRONTEND_PID (http://localhost:3000)"
     echo ""
@@ -378,7 +333,6 @@ npm install -g pm2
 1. Configure the system by editing JSON files in `config/` folder:
    ```bash
    nano config/backend.json
-   nano config/license-server.json
    nano config/frontend.json
    ```
 
@@ -497,10 +451,6 @@ echo ""
 log_info "=========================================="
 log_info "Deployment Summary"
 log_info "=========================================="
-echo ""
-echo "License Server:"
-echo "  Binary: $DEPLOY_DIR/license-server"
-echo "  Size: $(ls -lh $DEPLOY_DIR/license-server | awk '{print $5}')"
 echo ""
 echo "Backend:"
 echo "  Binary: $DEPLOY_DIR/server"

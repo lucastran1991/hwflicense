@@ -52,6 +52,13 @@ func main() {
 	manifestHandler := api.NewManifestHandler(manifestService)
 	ledgerHandler := api.NewLedgerHandler(repo)
 
+	// Initialize license services (from merged license-server)
+	licenseRepo := repository.NewLicenseRepository(db.Connection)
+	licenseSiteService := service.NewLicenseSiteService(licenseRepo)
+	licenseStatsService := service.NewLicenseStatsService(licenseRepo)
+	licenseAlertService := service.NewLicenseAlertService(licenseRepo)
+	licenseHandler := api.NewLicenseHandler(licenseSiteService, licenseStatsService, licenseAlertService, config.AppConfig.JWTSecret)
+
 	// Setup Gin router
 	router := gin.Default()
 
@@ -100,6 +107,15 @@ func main() {
 		manifestsGroup.GET("/:manifest_id/download", manifestHandler.DownloadManifest)
 		manifestsGroup.POST("/send", manifestHandler.SendManifest)
 	}
+
+	// License key management (from merged license-server)
+	protected.POST("/keys/create", licenseHandler.CreateSiteKey)
+	protected.GET("/keys", licenseHandler.ListSiteKeys)
+	protected.PUT("/keys/:id", licenseHandler.UpdateSiteKey)
+	protected.POST("/keys/refresh", licenseHandler.RefreshKey)
+	protected.POST("/keys/validate", licenseHandler.ValidateKey)
+	protected.POST("/stats/aggregate", licenseHandler.AggregateStats)
+	protected.POST("/alerts", licenseHandler.SendAlert)
 
 	// Start server
 	addr := config.AppConfig.ServerAddress()

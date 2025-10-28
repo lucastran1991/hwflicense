@@ -114,11 +114,4 @@ type Fingerprint struct {
 	DeploymentTag string `json:"deployment_tag,omitempty"`
 }
 
-// Enterprise represents enterprise-level keys
-type Enterprise struct {
-	ID            string    `json:"id"`
-	Name          string    `json:"name"`
-	OrgID         string    `json:"org_id"`
-	EnterpriseKey string    `json:"enterprise_key"`
-	CreatedAt     time.Time `json:"created_at"`
-}
+// Enterprise removed - now in license_models.go to avoid duplicate declaration
