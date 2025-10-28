@@ -1,6 +1,28 @@
 'use client';
 
 import { useState } from 'react';
+import {
+  Box,
+  Button,
+  Card,
+  CardBody,
+  Code,
+  Flex,
+  Heading,
+  Text,
+  VStack,
+  HStack,
+  Grid,
+  GridItem,
+  Badge,
+  Alert,
+  AlertIcon,
+  Spinner,
+  Textarea,
+  UnorderedList,
+  ListItem,
+  Divider,
+} from '@chakra-ui/react';
 import { apiClient } from '@/lib/api-client';
 
 interface APIEndpoint {
@@ -270,216 +292,252 @@ export default function APITestPage() {
     }
   };
 
+  const getMethodColor = (method: string) => {
+    switch (method) {
+      case 'GET': return 'blue';
+      case 'POST': return 'green';
+      case 'DELETE': return 'red';
+      default: return 'gray';
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">API Testing & Documentation</h1>
-          <p className="text-gray-600">Test all 18 backend API endpoints with live examples</p>
+    <Box minH="100vh" bg="gray.50" py={8} px={4}>
+      <Box maxW="7xl" mx="auto">
+        <VStack align="stretch" spacing={6} mb={8}>
+          <Heading size="xl" mb={2}>API Testing & Documentation</Heading>
+          <Text color="gray.600">Test all 18 backend API endpoints with live examples</Text>
           
           {/* Auth Token Display */}
-          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-blue-900">Authentication</p>
-                <p className="text-xs text-blue-700 mt-1">
-                  {token ? (
-                    <>
-                      ✅ Token: <code className="bg-blue-100 px-2 py-1 rounded">{token.substring(0, 20)}...</code>
-                    </>
-                  ) : (
-                    '❌ No token. Login first to access protected endpoints.'
-                  )}
-                </p>
-              </div>
+          <Alert status={token ? 'success' : 'warning'} borderRadius="md">
+            <AlertIcon />
+            <Flex w="100%" justify="space-between" align="center">
+              <Box>
+                <Text fontWeight="semibold" mb={1}>Authentication</Text>
+                {token ? (
+                  <Flex align="center" gap={2}>
+                    <Text fontSize="sm">Token:</Text>
+                    <Code bg="green.100" px={2} py={1}>{token.substring(0, 20)}...</Code>
+                  </Flex>
+                ) : (
+                  <Text fontSize="sm">No token. Login first to access protected endpoints.</Text>
+                )}
+              </Box>
               {!token && (
-                <button
+                <Button
+                  size="sm"
+                  colorScheme="blue"
                   onClick={() => {
                     const loginEndpoint = API_ENDPOINTS.find(e => e.path === '/api/auth/login');
                     if (loginEndpoint) setSelectedEndpoint(loginEndpoint);
                   }}
-                  className="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
                 >
                   Login Now
-                </button>
+                </Button>
               )}
-            </div>
-          </div>
-        </div>
+            </Flex>
+          </Alert>
+        </VStack>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }} gap={6}>
           {/* Left: API List */}
-          <div className="space-y-4">
-            <div className="bg-white shadow rounded-lg p-4">
-              <h2 className="text-xl font-semibold mb-4">All API Endpoints (18)</h2>
-              <div className="space-y-2 max-h-[600px] overflow-y-auto">
-                {API_ENDPOINTS.map((endpoint, index) => (
-                  <div
-                    key={index}
-                    onClick={() => {
-                      setSelectedEndpoint(endpoint);
-                      setRequestBody(endpoint.example ? JSON.stringify(endpoint.example, null, 2) : '');
-                      setResponse(null);
-                    }}
-                    className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                      selectedEndpoint?.path === endpoint.path
-                        ? 'bg-indigo-50 border-indigo-500'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`text-xs font-semibold px-2 py-1 rounded ${
-                        endpoint.method === 'GET' ? 'bg-blue-100 text-blue-800' :
-                        endpoint.method === 'POST' ? 'bg-green-100 text-green-800' :
-                        endpoint.method === 'DELETE' ? 'bg-red-100 text-red-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {endpoint.method}
-                      </span>
-                      <span className="text-xs font-medium text-gray-600">{endpoint.auth ? '🔒 Auth' : '🌐 Public'}</span>
-                    </div>
-                    <p className="font-mono text-sm">{endpoint.path}</p>
-                    <p className="text-xs text-gray-600 mt-1">{endpoint.description}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          <VStack spacing={4} align="stretch">
+            <Card>
+              <CardBody>
+                <Heading size="md" mb={4}>All API Endpoints (18)</Heading>
+                <Box maxH="600px" overflowY="auto">
+                  {API_ENDPOINTS.map((endpoint, index) => (
+                    <Box
+                      key={index}
+                      p={3}
+                      borderWidth="1px"
+                      borderRadius="md"
+                      cursor="pointer"
+                      bg={selectedEndpoint?.path === endpoint.path ? 'indigo.50' : 'white'}
+                      borderColor={selectedEndpoint?.path === endpoint.path ? 'indigo.500' : 'gray.200'}
+                      onClick={() => {
+                        setSelectedEndpoint(endpoint);
+                        setRequestBody(endpoint.example ? JSON.stringify(endpoint.example, null, 2) : '');
+                        setResponse(null);
+                      }}
+                      mb={2}
+                      _hover={{ borderColor: 'gray.300' }}
+                    >
+                      <Flex align="center" gap={2} mb={1}>
+                        <Badge colorScheme={getMethodColor(endpoint.method)}>{endpoint.method}</Badge>
+                        <Text fontSize="xs" color="gray.600">{endpoint.auth ? '🔒 Auth' : '🌐 Public'}</Text>
+                      </Flex>
+                      <Code fontSize="sm">{endpoint.path}</Code>
+                      <Text fontSize="xs" color="gray.600" mt={1}>{endpoint.description}</Text>
+                    </Box>
+                  ))}
+                </Box>
+              </CardBody>
+            </Card>
+          </VStack>
 
           {/* Right: Test Panel */}
-          <div className="space-y-4">
+          <VStack spacing={4} align="stretch">
             {selectedEndpoint && (
               <>
                 {/* Endpoint Details */}
-                <div className="bg-white shadow rounded-lg p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className={`text-xs font-semibold px-2 py-1 rounded ${
-                          selectedEndpoint.method === 'GET' ? 'bg-blue-100 text-blue-800' :
-                          selectedEndpoint.method === 'POST' ? 'bg-green-100 text-green-800' :
-                          selectedEndpoint.method === 'DELETE' ? 'bg-red-100 text-red-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {selectedEndpoint.method}
-                        </span>
-                        <code className="text-sm font-mono">{selectedEndpoint.path}</code>
-                      </div>
-                      <p className="text-gray-700">{selectedEndpoint.description}</p>
-                    </div>
-                  </div>
+                <Card>
+                  <CardBody>
+                    <Flex justify="space-between" align="flex-start" mb={4}>
+                      <Box>
+                        <Flex align="center" gap={2} mb={2}>
+                          <Badge colorScheme={getMethodColor(selectedEndpoint.method)}>
+                            {selectedEndpoint.method}
+                          </Badge>
+                          <Code fontSize="sm">{selectedEndpoint.path}</Code>
+                        </Flex>
+                        <Text color="gray.700">{selectedEndpoint.description}</Text>
+                      </Box>
+                    </Flex>
 
-                  {/* Parameters */}
-                  {selectedEndpoint.params && selectedEndpoint.params.length > 0 && (
-                    <div className="mb-4">
-                      <p className="text-sm font-semibold mb-2">Query Parameters:</p>
-                      <ul className="space-y-1 text-xs">
-                        {selectedEndpoint.params.map((param, idx) => (
-                          <li key={idx} className="text-gray-600">
-                            <code>{param.name}</code> ({param.type}) {param.required ? '(required)' : '(optional)'} - {param.description}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                    {/* Parameters */}
+                    {selectedEndpoint.params && selectedEndpoint.params.length > 0 && (
+                      <Box mb={4}>
+                        <Text fontWeight="semibold" fontSize="sm" mb={2}>Query Parameters:</Text>
+                        <UnorderedList spacing={1} fontSize="xs">
+                          {selectedEndpoint.params.map((param, idx) => (
+                            <ListItem key={idx} color="gray.600">
+                              <Code>{param.name}</Code> ({param.type}) {param.required ? '(required)' : '(optional)'} - {param.description}
+                            </ListItem>
+                          ))}
+                        </UnorderedList>
+                      </Box>
+                    )}
 
-                  {/* Body Parameters */}
-                  {selectedEndpoint.body && selectedEndpoint.body.length > 0 && (
-                    <div className="mb-4">
-                      <p className="text-sm font-semibold mb-2">Request Body:</p>
-                      <div className="mb-2">
-                        <button
+                    {/* Body Parameters */}
+                    {selectedEndpoint.body && selectedEndpoint.body.length > 0 && (
+                      <Box mb={4}>
+                        <Text fontWeight="semibold" fontSize="sm" mb={2}>Request Body:</Text>
+                        <Button
+                          size="xs"
+                          colorScheme="indigo"
+                          variant="ghost"
                           onClick={addExampleToEditor}
-                          className="text-xs text-indigo-600 hover:text-indigo-800"
+                          mb={2}
                         >
                           📋 Load Example
-                        </button>
-                      </div>
-                      <textarea
-                        value={requestBody}
-                        onChange={(e) => setRequestBody(e.target.value)}
-                        className="w-full font-mono text-xs border border-gray-300 rounded p-2"
-                        rows={6}
-                        placeholder="Enter JSON request body"
-                      />
-                    </div>
-                  )}
+                        </Button>
+                        <Textarea
+                          value={requestBody}
+                          onChange={(e) => setRequestBody(e.target.value)}
+                          fontSize="xs"
+                          fontFamily="mono"
+                          rows={6}
+                          placeholder="Enter JSON request body"
+                        />
+                      </Box>
+                    )}
 
-                  {/* Test Button */}
-                  <button
-                    onClick={() => handleTest(selectedEndpoint)}
-                    disabled={loading || (selectedEndpoint.auth && !token)}
-                    className="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {loading ? 'Testing...' : '🚀 Test Endpoint'}
-                  </button>
+                    {/* Test Button */}
+                    <Button
+                      onClick={() => handleTest(selectedEndpoint)}
+                      colorScheme="indigo"
+                      isDisabled={loading || (selectedEndpoint.auth && !token)}
+                      w="100%"
+                    >
+                      {loading ? 'Testing...' : '🚀 Test Endpoint'}
+                    </Button>
 
-                  {selectedEndpoint.auth && !token && (
-                    <p className="text-xs text-red-600 mt-2 text-center">
-                      ⚠️ This endpoint requires authentication. Please login first.
-                    </p>
-                  )}
-                </div>
+                    {selectedEndpoint.auth && !token && (
+                      <Alert status="warning" borderRadius="md">
+                        <AlertIcon />
+                        <Text fontSize="xs">
+                          This endpoint requires authentication. Please login first.
+                        </Text>
+                      </Alert>
+                    )}
+                  </CardBody>
+                </Card>
 
                 {/* Response Display */}
                 {response && (
-                  <div className="bg-white shadow rounded-lg p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold">Response</h3>
-                      <span className={`text-sm font-semibold ${getResponseColor()}`}>
-                        Status: {response.status}
-                      </span>
-                    </div>
-                    <pre className="bg-gray-50 p-4 rounded text-xs overflow-auto max-h-[400px]">
-                      {JSON.stringify(response.data || response.error, null, 2)}
-                    </pre>
-                  </div>
+                  <Card>
+                    <CardBody>
+                      <Flex justify="space-between" align="center" mb={4}>
+                        <Heading size="md">Response</Heading>
+                        <Badge colorScheme={response.status >= 200 && response.status < 300 ? 'green' : 'red'}>
+                          Status: {response.status}
+                        </Badge>
+                      </Flex>
+                      <Box
+                        bg="gray.50"
+                        p={4}
+                        borderRadius="md"
+                        overflow="auto"
+                        maxH="400px"
+                      >
+                        <Code fontSize="xs" display="block" whiteSpace="pre-wrap">
+                          {JSON.stringify(response.data || response.error, null, 2)}
+                        </Code>
+                      </Box>
+                    </CardBody>
+                  </Card>
                 )}
 
                 {error && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <p className="text-sm text-red-800 font-semibold">Error:</p>
-                    <p className="text-xs text-red-700 mt-1">{error}</p>
-                  </div>
+                  <Alert status="error" borderRadius="md">
+                    <AlertIcon />
+                    <Box>
+                      <Text fontWeight="semibold">Error:</Text>
+                      <Text fontSize="xs">{error}</Text>
+                    </Box>
+                  </Alert>
                 )}
               </>
             )}
 
             {!selectedEndpoint && (
-              <div className="bg-white shadow rounded-lg p-8 text-center text-gray-500">
-                <p>Select an API endpoint from the list to start testing</p>
-              </div>
+              <Card>
+                <CardBody>
+                  <Text textAlign="center" color="gray.500">
+                    Select an API endpoint from the list to start testing
+                  </Text>
+                </CardBody>
+              </Card>
             )}
-          </div>
-        </div>
+          </VStack>
+        </Grid>
 
         {/* Quick Stats */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white shadow rounded-lg p-4">
-            <p className="text-2xl font-bold text-indigo-600">{API_ENDPOINTS.length}</p>
-            <p className="text-sm text-gray-600">Total Endpoints</p>
-          </div>
-          <div className="bg-white shadow rounded-lg p-4">
-            <p className="text-2xl font-bold text-green-600">
-              {API_ENDPOINTS.filter(e => e.auth).length}
-            </p>
-            <p className="text-sm text-gray-600">Protected</p>
-          </div>
-          <div className="bg-white shadow rounded-lg p-4">
-            <p className="text-2xl font-bold text-blue-600">
-              {API_ENDPOINTS.filter(e => !e.auth).length}
-            </p>
-            <p className="text-sm text-gray-600">Public</p>
-          </div>
-          <div className="bg-white shadow rounded-lg p-4">
-            <p className="text-2xl font-bold text-purple-600">
-              {API_ENDPOINTS.filter(e => e.method === 'POST').length}
-            </p>
-            <p className="text-sm text-gray-600">POST Methods</p>
-          </div>
-        </div>
-      </div>
-    </div>
+        <Grid templateColumns={{ base: '1fr', md: 'repeat(4, 1fr)' }} gap={4} mt={8}>
+          <Card>
+            <CardBody>
+              <Text fontSize="2xl" fontWeight="bold" color="indigo.600">{API_ENDPOINTS.length}</Text>
+              <Text fontSize="sm" color="gray.600">Total Endpoints</Text>
+            </CardBody>
+          </Card>
+          <Card>
+            <CardBody>
+              <Text fontSize="2xl" fontWeight="bold" color="green.600">
+                {API_ENDPOINTS.filter(e => e.auth).length}
+              </Text>
+              <Text fontSize="sm" color="gray.600">Protected</Text>
+            </CardBody>
+          </Card>
+          <Card>
+            <CardBody>
+              <Text fontSize="2xl" fontWeight="bold" color="blue.600">
+                {API_ENDPOINTS.filter(e => !e.auth).length}
+              </Text>
+              <Text fontSize="sm" color="gray.600">Public</Text>
+            </CardBody>
+          </Card>
+          <Card>
+            <CardBody>
+              <Text fontSize="2xl" fontWeight="bold" color="purple.600">
+                {API_ENDPOINTS.filter(e => e.method === 'POST').length}
+              </Text>
+              <Text fontSize="sm" color="gray.600">POST Methods</Text>
+            </CardBody>
+          </Card>
+        </Grid>
+      </Box>
+    </Box>
   );
 }
 
