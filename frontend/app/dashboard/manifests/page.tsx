@@ -207,7 +207,7 @@ export default function ManifestsPage() {
                   </Code>
                 </Box>
                 <Box mb={4}>
-                  <Text fontSize="sm" fontWeight="medium" color="gray.700" mb={1}>
+                  <Text fontSize="sm" fontWeight="medium" color="whiteAlpha.800" mb={1}>
                     Signature:
                   </Text>
                   <Code fontSize="xs" whiteSpace="pre-wrap" wordBreak="break-all">
@@ -254,7 +254,7 @@ export default function ManifestsPage() {
             <Tbody>
               {manifests.length === 0 ? (
                 <Tr>
-                  <Td colSpan={4} textAlign="center" color="gray.500">
+                  <Td colSpan={4} textAlign="center" color="whiteAlpha.600">
                     No manifests generated yet
                   </Td>
                 </Tr>

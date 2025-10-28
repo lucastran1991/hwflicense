@@ -189,7 +189,7 @@ export default function SitesPage() {
                 <FormLabel>Fingerprint (Optional)</FormLabel>
                 <Grid templateColumns="repeat(3, 1fr)" gap={4}>
                   <Box>
-                    <FormLabel fontSize="xs" color="gray.500">Address</FormLabel>
+                    <FormLabel fontSize="xs" color="whiteAlpha.600">Address</FormLabel>
                     <Input
                       value={fingerprint.address}
                       onChange={(e) => setFingerprint({...fingerprint, address: e.target.value})}
@@ -198,7 +198,7 @@ export default function SitesPage() {
                     />
                   </Box>
                   <Box>
-                    <FormLabel fontSize="xs" color="gray.500">DNS Suffix</FormLabel>
+                    <FormLabel fontSize="xs" color="whiteAlpha.600">DNS Suffix</FormLabel>
                     <Input
                       value={fingerprint.dns_suffix}
                       onChange={(e) => setFingerprint({...fingerprint, dns_suffix: e.target.value})}
@@ -207,7 +207,7 @@ export default function SitesPage() {
                     />
                   </Box>
                   <Box>
-                    <FormLabel fontSize="xs" color="gray.500">Deployment Tag</FormLabel>
+                    <FormLabel fontSize="xs" color="whiteAlpha.600">Deployment Tag</FormLabel>
                     <Input
                       value={fingerprint.deployment_tag}
                       onChange={(e) => setFingerprint({...fingerprint, deployment_tag: e.target.value})}
@@ -253,7 +253,7 @@ export default function SitesPage() {
           <Tbody>
             {sites.length === 0 ? (
               <Tr>
-                <Td colSpan={5} textAlign="center" color="gray.500">
+                <Td colSpan={5} textAlign="center" color="whiteAlpha.600">
                   No sites found
                 </Td>
               </Tr>

@@ -176,7 +176,7 @@ export default function SiteDetailPage() {
             Back to Sites
           </Button>
           <Heading size="xl">Site Details</Heading>
-          <Text color="gray.600" mt={1}>{siteId}</Text>
+          <Text color="whiteAlpha.700" mt={1}>{siteId}</Text>
         </Box>
         <Box>
           <Button
@@ -206,12 +206,12 @@ export default function SiteDetailPage() {
           </CardHeader>
           <CardBody>
             <Box mb={4}>
-              <Text fontSize="sm" color="gray.500" mb={1}>Site ID</Text>
+              <Text fontSize="sm" color="whiteAlpha.600" mb={1}>Site ID</Text>
               <Text fontWeight="medium">{site.site_id}</Text>
             </Box>
             <Divider mb={4} />
             <Box mb={4}>
-              <Text fontSize="sm" color="gray.500" mb={1}>Status</Text>
+              <Text fontSize="sm" color="whiteAlpha.600" mb={1}>Status</Text>
               <Badge
                 colorScheme={
                   site.status === 'active' ? 'green' :
@@ -223,12 +223,12 @@ export default function SiteDetailPage() {
             </Box>
             <Divider mb={4} />
             <Box mb={4}>
-              <Text fontSize="sm" color="gray.500" mb={1}>Issued At</Text>
+              <Text fontSize="sm" color="whiteAlpha.600" mb={1}>Issued At</Text>
               <Text>{new Date(site.issued_at).toLocaleString()}</Text>
             </Box>
             <Divider mb={4} />
             <Box>
-              <Text fontSize="sm" color="gray.500" mb={1}>Last Seen</Text>
+              <Text fontSize="sm" color="whiteAlpha.600" mb={1}>Last Seen</Text>
               <Text>{site.last_seen ? new Date(site.last_seen).toLocaleString() : 'Never'}</Text>
             </Box>
           </CardBody>
@@ -242,7 +242,7 @@ export default function SiteDetailPage() {
             {fingerprint && Object.keys(fingerprint).length > 0 ? (
               Object.entries(fingerprint).map(([key, value], index) => (
                 <Box key={key} mb={index < Object.keys(fingerprint).length - 1 ? 4 : 0}>
-                  <Text fontSize="sm" color="gray.500" mb={1} textTransform="capitalize">
+                  <Text fontSize="sm" color="whiteAlpha.600" mb={1} textTransform="capitalize">
                     {key.replace('_', ' ')}
                   </Text>
                   <Text>{String(value)}</Text>
@@ -250,7 +250,7 @@ export default function SiteDetailPage() {
                 </Box>
               ))
             ) : (
-              <Text fontSize="sm" color="gray.500">No fingerprint information available</Text>
+              <Text fontSize="sm" color="whiteAlpha.600">No fingerprint information available</Text>
             )}
           </CardBody>
         </Card>
@@ -266,7 +266,7 @@ export default function SiteDetailPage() {
               {JSON.stringify(licenseData, null, 2)}
             </Code>
           ) : (
-            <Text fontSize="sm" color="gray.500">No license data available</Text>
+            <Text fontSize="sm" color="whiteAlpha.600">No license data available</Text>
           )}
         </CardBody>
       </Card>
