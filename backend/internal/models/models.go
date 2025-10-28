@@ -22,16 +22,20 @@ type CML struct {
 
 // SiteLicense represents a site license
 type SiteLicense struct {
-	ID           string          `json:"id"`
-	SiteID       string          `json:"site_id"`
-	OrgID        string          `json:"org_id"`
-	Fingerprint  json.RawMessage `json:"fingerprint"`
-	LicenseData  json.RawMessage `json:"license_data"`
-	Signature    string          `json:"signature"`
-	IssuedAt     time.Time       `json:"issued_at"`
-	LastSeen     *time.Time      `json:"last_seen,omitempty"`
-	Status       string          `json:"status"`
-	CreatedAt    time.Time       `json:"created_at"`
+	ID            string          `json:"id"`
+	SiteID        string          `json:"site_id"`
+	OrgID         string          `json:"org_id"`
+	EnterpriseID  string          `json:"enterprise_id,omitempty"`  // NEW
+	KeyType       string          `json:"key_type,omitempty"`        // NEW: "production" or "dev"
+	ExpiresAt     *time.Time      `json:"expires_at,omitempty"`     // NEW: 30 days from issued
+	LastRefreshed *time.Time      `json:"last_refreshed,omitempty"` // NEW
+	Fingerprint   json.RawMessage `json:"fingerprint"`
+	LicenseData   json.RawMessage `json:"license_data"`
+	Signature     string          `json:"signature"`
+	IssuedAt      time.Time       `json:"issued_at"`
+	LastSeen      *time.Time      `json:"last_seen,omitempty"`
+	Status        string          `json:"status"`
+	CreatedAt     time.Time       `json:"created_at"`
 }
 
 // UsageLedgerEntry represents a ledger entry
@@ -108,4 +112,13 @@ type Fingerprint struct {
 	Address       string `json:"address,omitempty"`
 	DNSSuffix     string `json:"dns_suffix,omitempty"`
 	DeploymentTag string `json:"deployment_tag,omitempty"`
+}
+
+// Enterprise represents enterprise-level keys
+type Enterprise struct {
+	ID            string    `json:"id"`
+	Name          string    `json:"name"`
+	OrgID         string    `json:"org_id"`
+	EnterpriseKey string    `json:"enterprise_key"`
+	CreatedAt     time.Time `json:"created_at"`
 }

@@ -1,8 +1,10 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/joho/godotenv"
 )
@@ -17,12 +19,39 @@ type Config struct {
 	EncryptionPassword  string
 }
 
+type JSONConfig struct {
+	Mode             string `json:"mode"`
+	DBPath           string `json:"db_path"`
+	JWTSecret        string `json:"jwt_secret"`
+	APIPort          string `json:"api_port"`
+	APIEnv           string `json:"api_env"`
+	EncryptionPassword string `json:"encryption_password"`
+	AStackMockPort   string `json:"astack_mock_port"`
+	RootPublicKey    string `json:"root_public_key"`
+}
+
 var AppConfig *Config
 
 func LoadConfig() error {
 	// Try to load .env file, but don't fail if it doesn't exist
 	_ = godotenv.Load()
 
+	// Try to load from JSON config file first
+	configPath := "../../config/backend.json"
+	if config, err := loadFromJSON(configPath); err == nil {
+		AppConfig = &Config{
+			DBPath:             config.DBPath,
+			JWTSecret:          config.JWTSecret,
+			APIPort:            config.APIPort,
+			APIEnv:             config.APIEnv,
+			RootPublicKey:      config.RootPublicKey,
+			AStackMockPort:     config.AStackMockPort,
+			EncryptionPassword: config.EncryptionPassword,
+		}
+		return nil
+	}
+
+	// Fall back to environment variables
 	config := &Config{
 		DBPath:             getEnv("DB_PATH", "data/taskmaster_license.db"),
 		JWTSecret:          getEnv("JWT_SECRET", "taskmaster-secret-key-change-in-production"),
@@ -35,6 +64,26 @@ func LoadConfig() error {
 
 	AppConfig = config
 	return nil
+}
+
+func loadFromJSON(configPath string) (*JSONConfig, error) {
+	// Get absolute path
+	absPath, err := filepath.Abs(configPath)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := os.ReadFile(absPath)
+	if err != nil {
+		return nil, err
+	}
+
+	var config JSONConfig
+	if err := json.Unmarshal(data, &config); err != nil {
+		return nil, err
+	}
+
+	return &config, nil
 }
 
 func getEnv(key, defaultValue string) string {

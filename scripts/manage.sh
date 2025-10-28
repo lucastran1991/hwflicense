@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # TaskMaster License System Management Script
-# This script manages the backend server and frontend
+# This script manages the backend server, license server, and frontend
 # Usage: ./scripts/manage.sh {start|stop|restart|status|logs}
 
 set -e
@@ -10,6 +10,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 BACKEND_DIR="$PROJECT_ROOT/backend"
 FRONTEND_DIR="$PROJECT_ROOT/frontend"
+LICENSE_SERVER_DIR="$PROJECT_ROOT/license-server"
 
 # Colors for output
 RED='\033[0;31m'
@@ -20,6 +21,7 @@ NC='\033[0m' # No Color
 # PIDs
 BACKEND_PID_FILE="$PROJECT_ROOT/.backend.pid"
 FRONTEND_PID_FILE="$PROJECT_ROOT/.frontend.pid"
+LICENSE_SERVER_PID_FILE="$PROJECT_ROOT/.license_server.pid"
 
 # Functions
 log_info() {

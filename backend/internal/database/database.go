@@ -55,12 +55,33 @@ func (db *DB) runMigrations() error {
 			}
 
 			if _, err := db.Connection.Exec(string(migrationSQL)); err != nil {
+				// Ignore "duplicate column" errors to allow idempotent migrations
+				errorStr := err.Error()
+				if contains(errorStr, "duplicate column") {
+					continue
+				}
 				return fmt.Errorf("failed to execute migration %s: %w", file.Name(), err)
 			}
 		}
 	}
 
 	return nil
+}
+
+func contains(s, substr string) bool {
+	return len(s) >= len(substr) && (s == substr || len(substr) == 0 || 
+		(len(s) > len(substr) && (s[:len(substr)] == substr || 
+		 s[len(s)-len(substr):] == substr || 
+		 containsInMiddle(s, substr))))
+}
+
+func containsInMiddle(s, substr string) bool {
+	for i := 0; i <= len(s)-len(substr); i++ {
+		if s[i:i+len(substr)] == substr {
+			return true
+		}
+	}
+	return false
 }
 
 func (db *DB) Close() error {

@@ -4,6 +4,9 @@
 *.so
 *.dylib
 server
+backend/server
+license-server
+backend/license-server
 
 # Test binary, built with `go test -c`
 *.test
@@ -65,20 +68,36 @@ data/
 *.db
 *.db-shm
 *.db-wal
+backend/data/
+license-server/data/
 
 # PID files
 .backend.pid
 .frontend.pid
+.license_server.pid
 .backend.log
 .frontend.log
+.license_server.log
 
 # Deployment
 deploy/
+license-server/license-server
+backend/server
 
 # Keys (gitignored for security)
 backend/keys/
 keys/
 
+# Logs
+logs/
+*.log
+
 # OS files
 .DS_Store
 Thumbs.db
+
+# Config (development only - production should be committed)
+# config/  # Uncomment if you want to ignore all configs
+
+# Transcript files
+transcript_full_text.txt

@@ -9,6 +9,7 @@ export default function SitesPage() {
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [newSiteId, setNewSiteId] = useState('');
+  const [keyType, setKeyType] = useState<'production' | 'dev'>('production');
   const [fingerprint, setFingerprint] = useState({ address: '', dns_suffix: '', deployment_tag: '' });
   const router = useRouter();
 

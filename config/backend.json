@@ -1,0 +1,11 @@
+{
+  "mode": "dev",
+  "db_path": "backend/data/taskmaster_license.db",
+  "jwt_secret": "taskmaster-secret-key-change-in-production",
+  "api_port": "8080",
+  "api_env": "development",
+  "encryption_password": "change-this-password-in-production-12345",
+  "astack_mock_port": "8081",
+  "root_public_key": ""
+}
+
