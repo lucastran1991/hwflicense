@@ -1,0 +1,4 @@
+org_id,max_sites,validity,feature_packs,dev_key_public,prod_key_public
+default,100,2026-12-31T23:59:59Z,"basic,standard","","
+acme_corp,50,2025-12-31T23:59:59Z,"premium","",""
+
