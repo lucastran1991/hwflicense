@@ -8,13 +8,6 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-# Configuration
-PID_FILE="$SCRIPT_DIR/kms.pid"
-LOG_FILE="$SCRIPT_DIR/kms.log"
-BINARY_NAME="kms-server"
-BINARY_PATH="$SCRIPT_DIR/$BINARY_NAME"
-MAIN_PATH="$SCRIPT_DIR/cmd/server/main.go"
-
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -33,6 +26,49 @@ print_error() {
 print_warning() {
     echo -e "${YELLOW}[WARNING]${NC} $1"
 }
+
+# Configuration
+PID_FILE="$SCRIPT_DIR/kms.pid"
+LOG_FILE="$SCRIPT_DIR/kms.log"
+BINARY_NAME="kms-server"
+BINARY_PATH="$SCRIPT_DIR/$BINARY_NAME"
+
+# Resolve main.go path - try multiple locations with better error handling
+MAIN_PATH="$SCRIPT_DIR/cmd/server/main.go"
+
+# Verify directory structure exists first
+if [ ! -d "$SCRIPT_DIR/cmd" ]; then
+    print_error "cmd/ directory not found at: $SCRIPT_DIR/cmd"
+    print_error "Script directory: $SCRIPT_DIR"
+    print_error "Current directory: $(pwd)"
+    print_error "Available directories:"
+    ls -la "$SCRIPT_DIR" 2>&1 | head -20 || echo "Cannot list directory"
+    exit 1
+fi
+
+if [ ! -d "$SCRIPT_DIR/cmd/server" ]; then
+    print_error "cmd/server/ directory not found at: $SCRIPT_DIR/cmd/server"
+    print_error "Available in cmd/:"
+    ls -la "$SCRIPT_DIR/cmd" 2>&1 || echo "Cannot list cmd directory"
+    exit 1
+fi
+
+if [ ! -f "$MAIN_PATH" ]; then
+    # Try alternative paths
+    if [ -f "cmd/server/main.go" ]; then
+        MAIN_PATH="cmd/server/main.go"
+    elif [ -f "./cmd/server/main.go" ]; then
+        MAIN_PATH="./cmd/server/main.go"
+    else
+        print_error "Cannot find main.go at: $SCRIPT_DIR/cmd/server/main.go"
+        print_error "Current directory: $(pwd)"
+        print_error "Script directory: $SCRIPT_DIR"
+        print_error "Main path attempted: $MAIN_PATH"
+        print_error "Available files in cmd/server/:"
+        ls -la "$SCRIPT_DIR/cmd/server" 2>&1 || echo "Cannot list cmd/server directory"
+        exit 1
+    fi
+fi
 
 # Check if service is already running
 if [ -f "$PID_FILE" ]; then
@@ -98,8 +134,22 @@ if [ -z "$KMS_PORT" ]; then
 fi
 
 print_info "Building KMS service..."
+print_info "Main path: $MAIN_PATH"
+print_info "Binary path: $BINARY_PATH"
+print_info "Working directory: $(pwd)"
+
+# Verify main.go exists before building
+if [ ! -f "$MAIN_PATH" ]; then
+    print_error "main.go not found at: $MAIN_PATH"
+    print_error "Current directory: $(pwd)"
+    print_error "Please check that cmd/server/main.go exists"
+    exit 1
+fi
+
 if ! go build -o "$BINARY_PATH" "$MAIN_PATH"; then
     print_error "Failed to build KMS service"
+    print_error "Check that Go is installed and working: $(which go)"
+    print_error "Verify the main.go file is valid"
     exit 1
 fi
 print_info "Build successful"
