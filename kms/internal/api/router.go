@@ -5,7 +5,7 @@ import (
 )
 
 // SetupRouter sets up the Gin router with all routes and middleware
-func SetupRouter(handler *Handler) *gin.Engine {
+func SetupRouter(handler *Handler, allowedOrigins []string, allowAllOrigins bool) *gin.Engine {
 	// Set Gin to release mode (disable debug)
 	gin.SetMode(gin.ReleaseMode)
 
@@ -13,7 +13,7 @@ func SetupRouter(handler *Handler) *gin.Engine {
 
 	// Apply global middleware
 	// CORS must be first to handle preflight requests
-	router.Use(CORSMiddleware())
+	router.Use(CORSMiddleware(allowedOrigins, allowAllOrigins))
 	router.Use(RecoveryMiddleware())
 	router.Use(LoggingMiddleware())
 	router.Use(RateLimitMiddleware())

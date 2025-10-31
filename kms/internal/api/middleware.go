@@ -102,20 +102,34 @@ func RecoveryMiddleware() gin.HandlerFunc {
 }
 
 // CORSMiddleware handles Cross-Origin Resource Sharing (CORS) headers
-func CORSMiddleware() gin.HandlerFunc {
+// allowedOrigins: list of allowed origin patterns (supports wildcard ports with *)
+// allowAllOrigins: if true, allow all origins (less secure but more flexible)
+func CORSMiddleware(allowedOrigins []string, allowAllOrigins bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		origin := c.GetHeader("Origin")
-		
-		// Allow localhost origins (development)
-		// Supports both localhost and 127.0.0.1 with any port
 		allowed := false
-		if origin != "" {
-			// Check if origin starts with localhost or 127.0.0.1
-			if strings.HasPrefix(origin, "http://localhost:") ||
-				strings.HasPrefix(origin, "https://localhost:") ||
-				strings.HasPrefix(origin, "http://127.0.0.1:") ||
-				strings.HasPrefix(origin, "https://127.0.0.1:") {
-				allowed = true
+		
+		// If allow all origins is enabled, allow any origin
+		if allowAllOrigins {
+			allowed = true
+		} else if origin != "" && len(allowedOrigins) > 0 {
+			// Check if origin matches any allowed pattern
+			for _, pattern := range allowedOrigins {
+				// Support wildcard ports (e.g., http://localhost:*)
+				if strings.Contains(pattern, "*") {
+					// Extract protocol and hostname before the port wildcard
+					prefix := strings.Split(pattern, "*")[0]
+					if strings.HasPrefix(origin, prefix) {
+						allowed = true
+						break
+					}
+				} else {
+					// Exact match
+					if origin == pattern {
+						allowed = true
+						break
+					}
+				}
 			}
 		}
 		
@@ -124,7 +138,7 @@ func CORSMiddleware() gin.HandlerFunc {
 			if allowed && origin != "" {
 				c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
 				c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-			} else if origin == "" {
+			} else if allowAllOrigins || origin == "" {
 				c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 			}
 			
@@ -142,10 +156,11 @@ func CORSMiddleware() gin.HandlerFunc {
 			c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 			c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
 			c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE, PATCH")
-		} else if origin == "" {
-			// No origin header means same-origin request or non-browser client
-			// Allow with wildcard for non-browser API clients
+		} else if allowAllOrigins || origin == "" {
+			// Allow all origins or no origin header (same-origin/non-browser client)
 			c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+			c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+			c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE, PATCH")
 		}
 		
 		c.Next()

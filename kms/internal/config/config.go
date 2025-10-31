@@ -48,13 +48,19 @@ type EnvironmentConfig struct {
 		WriteTimeout int `json:"write_timeout"`
 		IdleTimeout  int `json:"idle_timeout"`
 	} `json:"server"`
+	CORS struct {
+		AllowedOrigins  []string `json:"allowed_origins"`
+		AllowAllOrigins bool     `json:"allow_all_origins"`
+	} `json:"cors"`
 }
 
 // Config holds the application configuration
 type Config struct {
-	MasterKey []byte
-	DBPath    string
-	Port      string
+	MasterKey        []byte
+	DBPath           string
+	Port             string
+	CORSAllowedOrigins []string
+	CORSAllowAll     bool
 }
 
 // loadSettingsFromFile loads settings from JSON file if it exists
@@ -259,10 +265,24 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("master key must be exactly %d bytes (got %d bytes), base64 encoded", MasterKeySize, len(masterKey))
 	}
 
+	// Load CORS configuration from environment.json
+	corsAllowedOrigins := []string{
+		"http://localhost:*",
+		"http://127.0.0.1:*",
+	}
+	corsAllowAll := false
+	
+	if envConfig != nil && len(envConfig.CORS.AllowedOrigins) > 0 {
+		corsAllowedOrigins = envConfig.CORS.AllowedOrigins
+		corsAllowAll = envConfig.CORS.AllowAllOrigins
+	}
+
 	return &Config{
-		MasterKey: masterKey,
-		DBPath:    dbPath,
-		Port:      port,
+		MasterKey:        masterKey,
+		DBPath:           dbPath,
+		Port:             port,
+		CORSAllowedOrigins: corsAllowedOrigins,
+		CORSAllowAll:     corsAllowAll,
 	}, nil
 }
 

@@ -31,8 +31,8 @@ func main() {
 	// Initialize API handler
 	handler := api.NewHandler(store, cfg.MasterKey)
 
-	// Setup router
-	router := api.SetupRouter(handler)
+	// Setup router with CORS configuration
+	router := api.SetupRouter(handler, cfg.CORSAllowedOrigins, cfg.CORSAllowAll)
 
 	// Create HTTP server
 	srv := &http.Server{

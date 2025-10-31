@@ -16,6 +16,15 @@
     "read_timeout": 15,
     "write_timeout": 15,
     "idle_timeout": 60
+  },
+  "cors": {
+    "allowed_origins": [
+      "http://localhost:*",
+      "http://127.0.0.1:*",
+      "http://ctxdev.atomiton.com:*",
+      "https://ctxdev.atomiton.com:*"
+    ],
+    "allow_all_origins": false
   }
 }
 
