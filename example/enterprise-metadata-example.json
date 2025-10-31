@@ -1,0 +1,15 @@
+{
+  "description": "Enterprise License Metadata Example",
+  "metadata": {
+    "enterprise_id": "ENT-001",
+    "enterprise_name": "ACME Manufacturing Division",
+    "org_id": "ORG-12345",
+    "address": "123 Industrial Blvd, San Francisco, CA 94105",
+    "dns_suffix": "acme-manufacturing.com",
+    "deployment_tag": "production-us-west-1",
+    "parent_license_id": "license-uuid-for-hub-license",
+    "max_sites": "50",
+    "max_users": "500"
+  }
+}
+

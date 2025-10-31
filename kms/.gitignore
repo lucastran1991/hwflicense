@@ -1,0 +1,40 @@
+# Secrets and sensitive files
+secrets/
+*.key
+
+# Build artifacts
+kms-server
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+
+# Log files
+*.log
+kms.log
+kms.pid
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test artifacts
+tests/*.db
+tests/*.log
+tests/*.lic
+tests/*.txt
+tests/*.json
+tests/TEST_*.md
+

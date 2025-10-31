@@ -1,0 +1,6 @@
+{
+  "kms_db_path": "./kms_test.db",
+  "kms_port": "8080",
+  "note": "Master key (KMS_MASTER_KEY) must be set via environment variable for security"
+}
+

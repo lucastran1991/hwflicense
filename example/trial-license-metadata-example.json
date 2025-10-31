@@ -1,0 +1,10 @@
+{
+  "description": "Trial License Metadata Example",
+  "metadata": {
+    "trial_period_days": "30",
+    "customer_email": "user@example.com",
+    "company_name": "Startup Inc",
+    "trial_started": "2024-01-15T00:00:00Z"
+  }
+}
+

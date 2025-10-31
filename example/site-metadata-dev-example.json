@@ -1,0 +1,15 @@
+{
+  "description": "Site License Metadata Example - Development Site (Boost - Dev Mode)",
+  "metadata": {
+    "site_id": "SITE-DEV-001",
+    "enterprise_id": "ENT-001",
+    "site_name": "Development Testing Site",
+    "mode": "dev",
+    "site_type": "boost",
+    "address": "789 Test Street, San Jose, CA 95110",
+    "dns_suffix": "dev.acme-manufacturing.com",
+    "deployment_tag": "boost-dev-test",
+    "max_users": "10"
+  }
+}
+

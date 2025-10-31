@@ -1,0 +1,14 @@
+{
+  "description": "Site License Metadata Example - Site with Plant ID (when Site ID unavailable)",
+  "metadata": {
+    "plant_id": "PLANT-INTERNAL-789",
+    "site_id": "SITE-TEMP-001",
+    "enterprise_id": "ENT-001",
+    "site_name": "New Plant - Registration Pending",
+    "mode": "prod",
+    "site_type": "boost",
+    "registration_status": "pending",
+    "address": "321 New Plant Way, Sacramento, CA 95814"
+  }
+}
+

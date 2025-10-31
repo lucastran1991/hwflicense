@@ -1,0 +1,16 @@
+{
+  "description": "Site License Metadata Example - Production Site (HWF)",
+  "metadata": {
+    "site_id": "SITE-2024-001",
+    "enterprise_id": "ENT-001",
+    "site_name": "Main Manufacturing Plant",
+    "mode": "prod",
+    "site_type": "hwf",
+    "address": "456 Factory Road, Oakland, CA 94601",
+    "dns_suffix": "plant1.acme-manufacturing.com",
+    "deployment_tag": "hwf-prod-001",
+    "max_users": "100",
+    "status": "active"
+  }
+}
+

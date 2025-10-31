@@ -1,6 +1,0 @@
-{
-  "mode": "dev",
-  "api_url": "http://localhost:8080/api",
-  "port": "3000"
-}
-

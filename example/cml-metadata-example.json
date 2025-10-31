@@ -1,0 +1,14 @@
+{
+  "description": "Customer Master License (CML) Metadata Example",
+  "metadata": {
+    "org_id": "ORG-12345",
+    "max_enterprise": "10",
+    "max_sites": "100",
+    "max_users": "1000",
+    "validity": "2026-12-31T23:59:59Z",
+    "feature_packs": "advanced-analytics,real-time-monitoring,multi-tenant",
+    "issuer": "A-Stack",
+    "customer_name": "ACME Corporation"
+  }
+}
+

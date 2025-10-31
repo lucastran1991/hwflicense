@@ -1,0 +1,27 @@
+{
+  "description": "Complete API Request Example for License Generation",
+  "request_example": {
+    "key_id": "7ff272a4-1427-4d83-8b72-fb9e1852bf08",
+    "license_type": "site",
+    "metadata": {
+      "site_id": "SITE-2024-001",
+      "enterprise_id": "ENT-001",
+      "site_name": "Main Manufacturing Plant",
+      "mode": "prod",
+      "site_type": "hwf",
+      "address": "456 Factory Road, Oakland, CA 94601",
+      "dns_suffix": "plant1.acme-manufacturing.com",
+      "deployment_tag": "hwf-prod-001",
+      "max_users": "100",
+      "status": "active"
+    }
+  },
+  "curl_example": "curl -X POST http://localhost:8080/licenses/generate -H \"Content-Type: application/json\" -d @site-metadata-prod-example.json",
+  "notes": [
+    "All metadata values must be strings (JSON strings only)",
+    "Use ISO 8601 format for dates: YYYY-MM-DDTHH:mm:ssZ",
+    "Use comma-separated values for lists: \"item1,item2,item3\"",
+    "Keep keys lowercase_with_underscores or camelCase"
+  ]
+}
+

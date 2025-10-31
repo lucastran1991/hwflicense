@@ -1,0 +1,20 @@
+{
+  "description": "Complete Site License Metadata Example with All Fingerprint Fields",
+  "metadata": {
+    "site_id": "SITE-2024-042",
+    "enterprise_id": "ENT-005",
+    "enterprise_name": "Global Manufacturing Corp",
+    "site_name": "Singapore Production Facility",
+    "mode": "prod",
+    "site_type": "hwf",
+    "address": "10 Changi Business Park, Singapore 486025",
+    "dns_suffix": "sg-production.global-mfg.com",
+    "deployment_tag": "ap-southeast-1-prod-sg",
+    "max_users": "250",
+    "status": "active",
+    "parent_license_id": "enterprise-license-uuid",
+    "issued_by": "license-admin@company.com",
+    "notes": "Main production facility for APAC region"
+  }
+}
+

@@ -1,0 +1,11 @@
+{
+  "description": "Generic/Basic License Metadata Example",
+  "metadata": {
+    "customer_id": "CUST001",
+    "customer_name": "ABC Corporation",
+    "license_tier": "enterprise",
+    "max_users": "100",
+    "features": "feature1,feature2,feature3"
+  }
+}
+
