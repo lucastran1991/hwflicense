@@ -96,8 +96,26 @@ if [ ! -f ".env.local" ]; then
     fi
 fi
 
+# Verify API URL is set before build (critical for Next.js as NEXT_PUBLIC_API_URL is embedded at build time)
+if [ -z "$NEXT_PUBLIC_API_URL" ]; then
+    print_warning "NEXT_PUBLIC_API_URL is not set. This will be embedded in the build."
+    print_warning "API URL will default to: http://localhost:8080"
+    if echo "$HOSTNAME" | grep -q "ctxdev\|production\|prod" || [ -n "$DEPLOY_ENV" ]; then
+        print_error "WARNING: Detected production environment but API URL may be incorrect!"
+        print_error "Please ensure frontend.api_url in environment.json is set to production URL"
+    fi
+else
+    print_info "API URL for build: $NEXT_PUBLIC_API_URL"
+    # Warn if API URL contains localhost in non-local environment
+    if echo "$NEXT_PUBLIC_API_URL" | grep -q "localhost" && echo "$HOSTNAME" | grep -q "ctxdev\|production\|prod"; then
+        print_warning "WARNING: API URL contains 'localhost' but appears to be in production environment!"
+        print_warning "This may cause frontend to call wrong backend URL"
+    fi
+fi
+
 # Build the application
 print_info "Building Next.js application..."
+print_info "Note: NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL will be embedded in the build"
 if ! npm run build; then
     print_error "Failed to build Next.js application"
     exit 1

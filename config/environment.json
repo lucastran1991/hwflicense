@@ -2,11 +2,11 @@
   "backend": {
     "port": 8088,
     "db_path": "./kms.db",
-    "host": "localhost"
+    "host": "ctxdev.atomiton.com"
   },
   "frontend": {
     "port": 8888,
-    "api_url": "http://localhost:8088"
+    "api_url": "http://ctxdev.atomiton.com:8088"
   },
   "database": {
     "path": "./kms.db",
