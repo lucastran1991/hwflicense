@@ -3,8 +3,12 @@
 *.dll
 *.so
 *.dylib
-server
-backend/server
+# Ignore compiled server binaries (but not source code directories)
+/server
+/backend/server
+/kms/server
+/kms/kms-server
+/interface/server
 license-server
 backend/license-server
 
