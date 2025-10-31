@@ -1,9 +1,18 @@
-# Binaries
+# ============================================================================
+# Consolidated .gitignore - All patterns merged from root, kms, interface, and kms/tests
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# Binaries and Compiled Files
+# ----------------------------------------------------------------------------
 *.exe
 *.dll
 *.so
 *.dylib
-# Ignore compiled server binaries (but not source code directories)
+*.test
+*.out
+
+# Compiled server binaries (specific paths only - NOT source code directories)
 /server
 /backend/server
 /kms/server
@@ -11,71 +20,79 @@
 /interface/server
 license-server
 backend/license-server
+kms-server
 
-# Test binary, built with `go test -c`
-*.test
-
-# Output of the go coverage tool
-*.out
-
-# Dependency directories
+# ----------------------------------------------------------------------------
+# Dependencies
+# ----------------------------------------------------------------------------
 node_modules/
 .pnp
 .pnp.js
+vendor/
 
-# Testing
-coverage/
-
-# Next.js
+# ----------------------------------------------------------------------------
+# Next.js Build Artifacts
+# ----------------------------------------------------------------------------
 .next/
 out/
 build/
 dist/
-
-# Production
 /build
 /out
-
-# Misc
-.DS_Store
-*.pem
-*.log
-*.pid
-
-# Debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Local env files
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Vercel
-.vercel
-
-# Typescript
 *.tsbuildinfo
+next-env.d.ts
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
+# ----------------------------------------------------------------------------
+# Testing
+# ----------------------------------------------------------------------------
+coverage/
+# Note: kms/tests/ source code files should be tracked, only test artifacts are ignored
+kms/tests/*.db
+kms/tests/*.log
+kms/tests/*.lic
+kms/tests/*.txt
+kms/tests/*.json
+kms/tests/TEST_*.md
+kms/tests/test_database_*.db
+kms/tests/test_config_*.txt
 
-# Data files
-data/
+# ----------------------------------------------------------------------------
+# Database Files
+# ----------------------------------------------------------------------------
 *.db
 *.db-shm
 *.db-wal
+*.db-journal
+kms_test.db
+
+# ----------------------------------------------------------------------------
+# Data Files
+# ----------------------------------------------------------------------------
+data/
 backend/data/
 license-server/data/
 
-# PID files
+# ----------------------------------------------------------------------------
+# Secrets and Sensitive Files (specific paths only - NOT source code)
+# ----------------------------------------------------------------------------
+# Only ignore actual secrets directories, not source code folders like interface/src/app/keys/
+kms/secrets/
+backend/keys/
+/secrets/
+/keys/
+*.key
+# DO NOT ignore: interface/src/app/keys/ (source code route)
+# DO NOT ignore: interface/src/components/Keys/ (source code components)
+
+# ----------------------------------------------------------------------------
+# Log Files
+# ----------------------------------------------------------------------------
+*.log
+logs/
+kms.log
+kms.pid
+interface.log
+interface.pid
 .backend.pid
 .frontend.pid
 .license_server.pid
@@ -83,27 +100,73 @@ license-server/data/
 .frontend.log
 .license_server.log
 
+# ----------------------------------------------------------------------------
+# PID Files
+# ----------------------------------------------------------------------------
+*.pid
+
+# ----------------------------------------------------------------------------
+# Environment Files
+# ----------------------------------------------------------------------------
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+*.env
+
+# ----------------------------------------------------------------------------
 # Deployment
+# ----------------------------------------------------------------------------
 deploy/
 license-server/license-server
-backend/server
 license-server/data/
 license-server/*.log
 
-# Keys (gitignored for security)
-backend/keys/
-keys/
+# ----------------------------------------------------------------------------
+# IDE Files
+# ----------------------------------------------------------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-# Logs
-logs/
-*.log
-
-# OS files
+# ----------------------------------------------------------------------------
+# OS Files
+# ----------------------------------------------------------------------------
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
-# Config (development only - production should be committed)
-# config/  # Uncomment if you want to ignore all configs
+# ----------------------------------------------------------------------------
+# Temporary Files
+# ----------------------------------------------------------------------------
+tmp/
+temp/
+*.tmp
+*.bak
+*.backup
 
-# Transcript files
+# ----------------------------------------------------------------------------
+# Vercel
+# ----------------------------------------------------------------------------
+.vercel
+
+# ----------------------------------------------------------------------------
+# Misc
+# ----------------------------------------------------------------------------
+*.pem
 transcript_full_text.txt
+
+# ----------------------------------------------------------------------------
+# Config Files
+# ----------------------------------------------------------------------------
+# Note: config/ should be committed (not ignored)
+# Uncomment below if you want to ignore config files during development
+# config/
