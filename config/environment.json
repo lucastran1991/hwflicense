@@ -1,0 +1,21 @@
+{
+  "backend": {
+    "port": 8080,
+    "db_path": "./kms.db",
+    "host": "localhost"
+  },
+  "frontend": {
+    "port": 3000,
+    "api_url": "http://localhost:8080"
+  },
+  "database": {
+    "path": "./kms.db",
+    "type": "boltdb"
+  },
+  "server": {
+    "read_timeout": 15,
+    "write_timeout": 15,
+    "idle_timeout": 60
+  }
+}
+

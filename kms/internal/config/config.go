@@ -18,12 +18,36 @@ const (
 	MasterKeySize = 32
 	// DefaultConfigPath is the default path to settings JSON file
 	DefaultConfigPath = "./config/setting.json"
+	// DefaultEnvironmentConfigPath is the default path to environment.json file
+	DefaultEnvironmentConfigPath = "./config/environment.json"
 )
 
 // Settings represents the settings from JSON file
 type Settings struct {
 	KMSDBPath string `json:"kms_db_path"`
 	KMSPort   string `json:"kms_port"`
+}
+
+// EnvironmentConfig represents the environment.json configuration
+type EnvironmentConfig struct {
+	Backend struct {
+		Port   int    `json:"port"`
+		DBPath string `json:"db_path"`
+		Host   string `json:"host"`
+	} `json:"backend"`
+	Frontend struct {
+		Port   int    `json:"port"`
+		APIURL string `json:"api_url"`
+	} `json:"frontend"`
+	Database struct {
+		Path string `json:"path"`
+		Type string `json:"type"`
+	} `json:"database"`
+	Server struct {
+		ReadTimeout  int `json:"read_timeout"`
+		WriteTimeout int `json:"write_timeout"`
+		IdleTimeout  int `json:"idle_timeout"`
+	} `json:"server"`
 }
 
 // Config holds the application configuration
@@ -59,6 +83,48 @@ func loadSettingsFromFile(configPath string) (*Settings, error) {
 	}
 
 	return &settings, nil
+}
+
+// loadEnvironmentConfig loads environment.json configuration if it exists
+func loadEnvironmentConfig() (*EnvironmentConfig, error) {
+	// Try multiple possible paths for environment.json
+	possiblePaths := []string{
+		DefaultEnvironmentConfigPath,
+		"../config/environment.json",
+		"../../config/environment.json",
+		"./config/environment.json",
+	}
+
+	var envConfig *EnvironmentConfig
+	var lastErr error
+
+	for _, configPath := range possiblePaths {
+		// Check if file exists
+		if _, err := os.Stat(configPath); os.IsNotExist(err) {
+			continue
+		}
+
+		data, err := os.ReadFile(configPath)
+		if err != nil {
+			lastErr = err
+			continue
+		}
+
+		var config EnvironmentConfig
+		if err := json.Unmarshal(data, &config); err != nil {
+			lastErr = fmt.Errorf("failed to parse environment.json: %w", err)
+			continue
+		}
+
+		envConfig = &config
+		break
+	}
+
+	if envConfig == nil && lastErr != nil {
+		return nil, lastErr
+	}
+
+	return envConfig, nil
 }
 
 // loadMasterKeyFromFile loads master key from a secure file
@@ -110,10 +176,18 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("failed to load settings from file: %w", err)
 	}
 
-	// Start with defaults or file settings
+	// Load environment.json configuration
+	envConfig, err := loadEnvironmentConfig()
+	if err != nil {
+		// Log but don't fail - environment.json is optional
+		// Will use defaults or other config sources
+	}
+
+	// Start with defaults
 	dbPath := DefaultDBPath
 	port := DefaultPort
 
+	// Priority 3: Load from setting.json (if exists)
 	if settings != nil {
 		if settings.KMSDBPath != "" {
 			dbPath = settings.KMSDBPath
@@ -123,7 +197,22 @@ func Load() (*Config, error) {
 		}
 	}
 
-	// Environment variables override file settings
+	// Priority 2: Load from environment.json (if exists) - overrides setting.json
+	if envConfig != nil {
+		// Load database path - check database.path first, then backend.db_path
+		if envConfig.Database.Path != "" {
+			dbPath = envConfig.Database.Path
+		} else if envConfig.Backend.DBPath != "" {
+			dbPath = envConfig.Backend.DBPath
+		}
+		
+		// Load port
+		if envConfig.Backend.Port > 0 {
+			port = fmt.Sprintf(":%d", envConfig.Backend.Port)
+		}
+	}
+
+	// Priority 1: Environment variables override everything
 	if envDBPath := os.Getenv("KMS_DB_PATH"); envDBPath != "" {
 		dbPath = envDBPath
 	}

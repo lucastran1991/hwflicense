@@ -11,7 +11,41 @@ cd "$SCRIPT_DIR"
 # Configuration
 PID_FILE="$SCRIPT_DIR/interface.pid"
 LOG_FILE="$SCRIPT_DIR/interface.log"
-PORT="${PORT:-3000}"
+
+# Load port from environment.json if available
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+ENV_CONFIG_FILE="$PROJECT_ROOT/config/environment.json"
+DEFAULT_PORT=3000
+
+# Try to load port and api_url from environment.json
+if [ -f "$ENV_CONFIG_FILE" ]; then
+    # Use jq if available (most reliable)
+    if command -v jq > /dev/null 2>&1; then
+        FRONTEND_PORT=$(jq -r '.frontend.port // 3000' "$ENV_CONFIG_FILE" 2>/dev/null || echo "$DEFAULT_PORT")
+        FRONTEND_API_URL=$(jq -r '.frontend.api_url // empty' "$ENV_CONFIG_FILE" 2>/dev/null || echo "")
+    elif command -v node > /dev/null 2>&1; then
+        # Use node to parse JSON (more reliable than grep/sed)
+        FRONTEND_PORT=$(node -e "try { const c=require('$ENV_CONFIG_FILE'); console.log(c.frontend?.port || $DEFAULT_PORT); } catch(e) { console.log($DEFAULT_PORT); }" 2>/dev/null || echo "$DEFAULT_PORT")
+        FRONTEND_API_URL=$(node -e "try { const c=require('$ENV_CONFIG_FILE'); console.log(c.frontend?.api_url || ''); } catch(e) { console.log(''); }" 2>/dev/null || echo "")
+    else
+        # Fallback: use grep/sed (less reliable but works without dependencies)
+        FRONTEND_PORT=$(grep -A 5 '"frontend"' "$ENV_CONFIG_FILE" | grep -o '"port"[[:space:]]*:[[:space:]]*[0-9]*' | grep -o '[0-9]*' || echo "$DEFAULT_PORT")
+        FRONTEND_API_URL=$(grep -A 5 '"frontend"' "$ENV_CONFIG_FILE" | grep -o '"api_url"[[:space:]]*:[[:space:]]*"[^"]*"' | grep -o '"[^"]*"' | tr -d '"' || echo "")
+        if [ -z "$FRONTEND_PORT" ] || [ "$FRONTEND_PORT" = "" ]; then
+            FRONTEND_PORT=$DEFAULT_PORT
+        fi
+    fi
+    
+    # Export API URL if found in environment.json
+    if [ -n "$FRONTEND_API_URL" ] && [ "$FRONTEND_API_URL" != "" ]; then
+        export NEXT_PUBLIC_API_URL="$FRONTEND_API_URL"
+    fi
+else
+    FRONTEND_PORT=$DEFAULT_PORT
+fi
+
+# Environment variable PORT takes precedence
+PORT="${PORT:-$FRONTEND_PORT}"
 
 # Colors for output
 RED='\033[0;31m'
