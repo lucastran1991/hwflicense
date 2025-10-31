@@ -1,12 +1,12 @@
 {
   "backend": {
-    "port": 8080,
+    "port": 8088,
     "db_path": "./kms.db",
     "host": "localhost"
   },
   "frontend": {
-    "port": 3000,
-    "api_url": "http://localhost:8080"
+    "port": 8888,
+    "api_url": "http://localhost:8088"
   },
   "database": {
     "path": "./kms.db",
